@@ -196,17 +196,18 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         matches <<= 1;
         if (i < num_blocks) {
             uint64_t hash_read = fread_hash(ftabi);
-            printf("hash_read at i = %d: 0x%lx\n", i, hash_read);
+            printf("hash_read at i = %d:    0x%lx\n", i, hash_read);
 
             if (in_file != NULL) {
                 uint64_t hash_generated = generate_hash(in_file);
                 printf("generate_hash at i = %d: 0x%lx\n", i, hash_read);
                 if (hash_read == hash_generated) {
+                    printf("matches += 1\n");
                     matches += 1;
                 }
             }
         }
-        printf("matches array at i = %d: 0x%lx\n", i, matches);
+        printf("matches array at i = %d:    0x%lx\n", i, matches);
     }
     fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
