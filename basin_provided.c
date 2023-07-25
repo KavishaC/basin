@@ -26,7 +26,6 @@ uint64_t hash_block(char block[], size_t block_size) {
     return hash;
 }
 
-
 /// @brief Compute the number of blocks in a file, given its size.
 /// @param num_bytes The number of bytes in a file.
 /// @return The nunber of blocks that are needed for that file.

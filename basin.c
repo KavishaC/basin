@@ -122,6 +122,9 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         fclose(fin);
     }
     fclose(fout);
+    char string[256] = "This file should be broken up by your program into three blocks: the first 256 bytes spans lines one to four (and includes the newline on line four), the second 256 bytes is from line 5 to the asterisk (inclusive), and the final block is only 1 byte long!";
+    uint64_t hash = hash_block(string, 8);
+    fwrite(&hash, 8, 1, stdout);
 }
 
 /// @brief Create a TBBI file from a TABI file.
