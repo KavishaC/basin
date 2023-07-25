@@ -192,7 +192,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
     uint64_t matches = 0;
     int matches_length = num_tbbi_match_bytes(num_blocks);
-    for (int i = 0; i < matches_length; i++) {
+    for (int i = 0; i < (matches_length * 8); i++) {
         if (i < num_blocks) {
             uint64_t hash_read = fread_hash(ftabi);
             if (in_file != NULL) {
