@@ -48,7 +48,7 @@ void fread_next_256byte_block(FILE *fin, char block[]) {
         //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            //printf("char is EOF\n", j);
+            printf("char is EOF\n", j);
             return;
         }
         //printf("assigning block[%d] = %c\n", j, c);
