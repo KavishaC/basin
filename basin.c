@@ -205,17 +205,48 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     fclose(in_file);
 }
 
+void strmode(FILE *file, mode_t mode) {
+  const char chars[] = "rwxrwxrwx";
+  for (size_t i = 0; i < 9; i++) {
+    fputc((mode & (1 << (8-i))) ? chars[i] : '-', file);
+  }
+}
+
 void print_mode_to_file(FILE *ftcbi, char *pathname) {
     struct stat s;
 	if (stat(pathname, &s) != 0) {
 		perror(pathname);
 		exit(1);
 	}
-    char *mode = s.st_mode;
-    for (int i = 0; i < 10; i++) {
-        fputc(ftcbi, mode[i]);
+    //char *mode = ;
+/*     for (int i = 0; i < 10; i++) {
+        fputc(mode[i], ftcbi);
+    } */
+    if ((s.st_mode & S_IFMT) == S_IFREG) {
+        fputc('-', ftcbi);
+    } else {
+        fputc('0', ftcbi);
     }
-	printf("size = %10ld # File size (bytes) \n", (long)s.st_size);
+    /* 
+      if ((mode & S_IFMT) == S_IFREG) {
+        printf("Regular file\n");
+    } else if ((mode & S_IFMT) == S_IFDIR) {
+        printf("Directory\n");
+    } else if ((mode & S_IFMT) == S_IFLNK) {
+        printf("Symbolic link\n");
+    } else if ((mode & S_IFMT) == S_IFIFO) {
+        printf("FIFO or pipe\n");
+    } else if ((mode & S_IFMT) == S_IFSOCK) {
+        printf("Socket\n");
+    } else if ((mode & S_IFMT) == S_IFCHR) {
+        printf("Character device\n");
+    } else if ((mode & S_IFMT) == S_IFBLK) {
+        printf("Block device\n");
+    } else {
+        printf("Unknown file type\n");
+    }
+     */
+    strmode(ftcbi, s.st_mode);
 }
 
 void print_filesize_to_file(FILE *ftcbi, char *pathname) {
@@ -249,6 +280,7 @@ int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
             }
         }
     }
+    return num_updates;
 }
 
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
@@ -266,6 +298,8 @@ void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_b
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(readfile, block);
         if (updates[i] == true) {
+            fwrite(&i, 3, 1, file);
+            fwrite(&block_size, 2, 1, file);
             for (int j = 0; j < block_size; j++) {
                 //printf("reading %dth char\n", j);
                 fputc(block[j], readfile);
