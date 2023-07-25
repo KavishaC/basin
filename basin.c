@@ -77,7 +77,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     fwrite_little_endian_24(fout, num_of_blocks);
 
     for (int i = 0; i < num_of_blocks; i++) {
-        printf("\nprinting blocks: i = %d\n", i);
+        //printf("\nprinting blocks: i = %d\n", i);
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(fin, block);
