@@ -48,7 +48,7 @@ void fread_next_256byte_block(FILE *fin, char block[]) {
         //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            printf("char is EOF\n", j);
+            //printf("char is EOF\n", j);
             return;
         }
         //printf("assigning block[%d] = %c\n", j, c);
@@ -74,12 +74,12 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     fwrite_little_endian_24(fout, num_of_blocks);
 
     for (int i = 0; i < num_of_blocks; i++) {
-        printf("printing blocks: i = %d\n", i);
+        //printf("printing blocks: i = %d\n", i);
         char block[BLOCK_SIZE];
         memset(block, 0, sizeof(block));
         fread_next_256byte_block(fin, block);
         for (int j = 0; j < BLOCK_SIZE; j++) {
-            printf("%c", block[j]);
+            //printf("%c", block[j]);
         }
         uint64_t hash = hash_block(block, 256);
         fwrite_little_endian_64(fout, hash);
@@ -124,7 +124,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
     fclose(fout);
     char string[256] = "This file should be broken up by your program into three blocks: the first 256 bytes spans lines one to four (and includes the newline on line four), the second 256 bytes is from line 5 to the asterisk (inclusive), and the final block is only 1 byte long!";
     uint64_t hash = hash_block(string, 8);
-    printf("%lx\n", hash);
+    //printf("%lx\n", hash);
 }
 
 /// @brief Create a TBBI file from a TABI file.
