@@ -122,6 +122,11 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         fclose(fin);
     }
     fclose(fout);
+    char block[1];
+    block[0] = "a";
+
+    uint64_t hash = hash_block(block, 256);
+    printf("\nhash of a : %lx", hash);
 }
 
 /// @brief Create a TBBI file from a TABI file.
