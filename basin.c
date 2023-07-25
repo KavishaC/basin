@@ -35,12 +35,12 @@ void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
 }
 
 void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
-    uint64_t result = 0;
+/*     uint64_t result = 0;
 
     for (int i = 0; i < sizeof(uint64_t); i++) {
         result |= ((number >> (i * 8)) & 0xFF) << ((sizeof(uint64_t) - 1 - i) * 8);
-    }
-    fwrite(&result, 8, 1, fout);
+    } */
+    fwrite(&number, 8, 1, fout);
 }
 
 void fread_next_256byte_block(FILE *fin, char block[]) {
