@@ -223,6 +223,7 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
         fputc(mode[i], ftcbi);
     } */
     if (S_ISREG(s.st_mode)) {
+        printf("filetype is regular\n");
         fputc('-', ftcbi);
     } else {
         fputc('0', ftcbi);
