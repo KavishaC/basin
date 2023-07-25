@@ -77,6 +77,9 @@ uint64_t fread_hash(FILE *ftabi) {
 }
 
 uint64_t generate_hash(FILE *fin) {
+    if (fin == NULL) {
+        return 0;
+    }
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
     int block_size = fread_next_256byte_block(fin, block);
@@ -176,16 +179,22 @@ int copy_num_blocks_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
     return (int)num_blocks;
 }
 
-void write_hash(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
+void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
     uint64_t hash = 0;
-    for (int i = 0; i < num_blocks; i++) {
-        if ((fread_hash(ftabi) == generate_hash(in_file)) && (in_file != NULL)) {
-            hash += 1;
+    int matches_length = num_tbbi_match_bytes(num_blocks);
+    for (int i = 0; i < matches_length; i++) {
+        if (i < num_blocks) {
+            if ((fread_hash(ftabi) == generate_hash(in_file)) && (in_file != NULL)) {
+                hash += 1;
+            }
         }
         hash <<= 1;
     }
+    //pad and write
+
     fwrite(&hash, num_blocks, 1, ftbbi);
+
     fclose(in_file);
 }
 
@@ -246,7 +255,7 @@ void stage_2(char *out_filename, char *in_filename) {
         int num_blocks = copy_num_blocks_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
         // open filestream
         // if file == NULL assign all bits to 0
-        write_hash(num_blocks, pathname, ftabi, ftbbi);
+        write_matches(num_blocks, pathname, ftabi, ftbbi);
         free(pathname);
     }
 
