@@ -107,6 +107,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         FILE *fin = fopen(in_filename, "r");
         if (fin == NULL) {
             perror(in_filename);
+            return;
         }
         fwrite_record(fout, fin, in_filename);
         fclose(fin);
