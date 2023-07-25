@@ -116,15 +116,11 @@ void read_tabi_magic(FILE *ftabi) {
     }
 }
 
-void fwrite_magic_tabi(FILE *ftbbi) {
+void fwrite_magic_tbbi(FILE *ftbbi) {
     char magic_number_tbbi[] = {0x54, 0x42, 0x42, 0x49};
     for (int i = 0; i < 4; i++) {
         fputc(magic_number_tbbi[i], ftbbi);
     }
-}
-
-void fwrite_match(ftabi, ftbbi, in_file) {
-    fwrite_match(ftabi, ftbbi, in_file);
 }
 
 int copy_number_of_records_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
@@ -230,7 +226,7 @@ void stage_2(char *out_filename, char *in_filename) {
         exit(1);
     }
     read_tabi_magic(ftabi); // exit if incorrect
-    write_tbbi_magic(ftabi);
+    fwrite_magic_tbbi(ftbbi);
 
     int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
     // for each record
