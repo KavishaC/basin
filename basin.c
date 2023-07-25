@@ -274,7 +274,7 @@ int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
     int num_updates = 0;
     for (int i = 0; i < (matches_length * 8); i++) {
         int match = fgetc(file);
-        printf("reading %dth bit from matches = %d", i, match);
+        printf("reading %dth bit from matches = %d\n", i, match);
         if (match == EOF) {
             perror("EOF reached while reading match");
             exit(1);
