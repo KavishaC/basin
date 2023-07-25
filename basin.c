@@ -122,7 +122,8 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         fclose(fin);
     }
     fclose(fout);
-    char block[1];
+    char block[256];
+    memset(block, '\0', sizeof(block));
     block[0] = 'a';
 
     uint64_t hash = hash_block(block, 256);
