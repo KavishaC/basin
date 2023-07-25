@@ -120,29 +120,20 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
 return 0;
 }
 
-void fwrite_magic_tabi(FILE *fout) {
-    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+void write_magic(FILE *fout, char magic[]) {
     for (int i = 0; i < 4; i++) {
-        fputc(magic_number_tabi[i], fout);
+        fputc(magic[i], fout);
     }
 }
 
-void read_tabi_magic(FILE *ftabi) {
-    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+void read_magic(FILE *file, char magic[]) {
     for (int i = 0; i < 4; i++) {
-        if (fgetc(ftabi) != magic_number_tabi[i]) {
-            perror("tabi magic wrong");
+        if (fgetc(file) != magic[i]) {
+            perror("magic wrong");
             exit(1);
         }
     }
-}
-
-void fwrite_magic_tbbi(FILE *ftbbi) {
-    char magic_number_tbbi[] = {0x54, 0x42, 0x42, 0x49};
-    for (int i = 0; i < 4; i++) {
-        fputc(magic_number_tbbi[i], ftbbi);
-    }
-}
+} 
 
 int copy_number_of_records_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
     int read = fgetc(ftabi);
@@ -222,13 +213,14 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
 ///                         subset 5, when this is zero, you should include
 ///                         everything in the current directory.
 void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) {
-    
+    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+
     FILE *fout = fopen(out_filename, "w");
     if (fout == NULL) {
         perror(out_filename);
     } 
 
-    fwrite_magic_tabi(fout);
+    write_magic(fout, magic_number_tabi);
     fputc((u_int8_t)num_in_filenames, fout);
 
     for (int i = 0; i < num_in_filenames; i++) {
@@ -248,6 +240,8 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
 /// @param out_filename A path to where the new TBBI file should be created.
 /// @param in_filename A path to where the existing TABI file is located.
 void stage_2(char *out_filename, char *in_filename) {
+    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+    char magic_number_tbbi[] = {0x54, 0x42, 0x42, 0x49};
 
     FILE *ftabi = fopen(in_filename, "r");
     if (ftabi == NULL) {
@@ -259,24 +253,19 @@ void stage_2(char *out_filename, char *in_filename) {
         perror(out_filename);
         exit(1);
     }
-    read_tabi_magic(ftabi);
-    fwrite_magic_tbbi(ftbbi);
+    read_magic(ftabi, magic_number_tabi);
+    write_magic(ftbbi, magic_number_tbbi);
 
     int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
     for (int i = 0; i < num_of_records; i++) {
-        //printf("reading i = %d\n", i);
 
         char *pathname = copy_pathname_and_length_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
-        // read number of blocks from tabi
         int num_blocks = copy_num_blocks_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
-        // open filestream
-        // if file == NULL assign all bits to 0
         write_matches(num_blocks, pathname, ftabi, ftbbi);
         free(pathname);
     }
 
     if (fgetc(ftabi) != EOF) {
-        // you read somethi ng else even though youre supposed to be done => exit(1)
         perror("EOF not reached after reading given number of records");
         exit(1);
     }
@@ -289,7 +278,14 @@ void stage_2(char *out_filename, char *in_filename) {
 /// @param out_filename A path to where the new TCBI file should be created.
 /// @param in_filename A path to where the existing TBBI file is located.
 void stage_3(char *out_filename, char *in_filename) {
-    // TODO: implement this.
+    // open tbbi
+    // if NULL exit
+    // open tcbi
+    // if NULL exit
+
+    // read_tbbi_magic()
+    // write_tcci_magic()
+
 }
 
 
