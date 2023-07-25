@@ -100,14 +100,13 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
     } 
 
     fwrite_magic_tabi(fout);
-    fputc(fout, (u_int8_t)num_in_filenames);
+    fputc((u_int8_t)num_in_filenames, fout);
 
     for (int i = 0; i < num_in_filenames; i++) {
         char *in_filename = in_filenames[i];
         FILE *fin = fopen(in_filename, "r");
         if (fin == NULL) {
             perror(in_filename);
-            return 1;
         }
         fwrite_record(fout, fin, in_filename);
         fclose(fin);
