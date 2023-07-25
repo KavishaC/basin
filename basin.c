@@ -67,6 +67,15 @@ void fwrite_hash(FILE *fout, FILE *fin) {
     fwrite_little_endian_64(fout, hash);
 }
 
+uint64_t fread_hash(FILE *ftabi) {
+    uint64_t hash;
+    if (fread(&hash, 8, 1, ftabi) < 8) {
+        perror("EOF reached while reading hash");
+        exit(1);
+    }
+    return hash;
+}
+
 uint64_t generate_hash(FILE *fin) {
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
