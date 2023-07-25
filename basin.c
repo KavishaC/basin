@@ -135,41 +135,41 @@ void read_magic(FILE *file, char magic[]) {
     }
 } 
 
-int copy_number_of_records_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
-    int read = fgetc(ftabi);
+int copy_number_of_records_from_file1_to_file2(FILE *file1, FILE *file2) {
+    int read = fgetc(file1);
     if (read == EOF) {
         perror("EOF reached while reading number of records");
         exit(1);
     }
     u_int8_t num_of_records = read;
-    fputc(num_of_records, ftbbi);
+    fputc(num_of_records, file2);
     return read;
 }
 
-char *copy_pathname_and_length_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
+char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
     //printf("pathname_lenght %u\n", pathname_length);
     u_int16_t pathname_length;
-    if (fread(&pathname_length, 2, 1, ftabi) == 0) {
+    if (fread(&pathname_length, 2, 1, file1) == 0) {
         perror("reached EOF at pathlength");
         exit(1);
     };
 
-    fwrite(&pathname_length, 2, 1, ftbbi);
+    fwrite(&pathname_length, 2, 1, file2);
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
     for (int i = 0; i < pathname_length; i++) {
-        int read = fgetc(ftabi);
+        int read = fgetc(file1);
         if (read == EOF) {
             perror("reached EOF at pathname");
             exit(1);
         }
-        fputc((char)read, ftbbi);
+        fputc((char)read, file2);
         pathname[i] = (char)read;
     }
     return pathname;
 }
 
-int copy_num_blocks_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
+int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
     uint32_t num_blocks;
     if (fread(&num_blocks, 3, 1, ftabi) == 0) {
         perror("EOF reached while reading num_blocks");
@@ -203,6 +203,75 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
     fclose(in_file);
+}
+
+void print_mode_to_file(FILE *ftcbi, char *pathname) {
+    struct stat s;
+	if (stat(pathname, &s) != 0) {
+		perror(pathname);
+		exit(1);
+	}
+    char *mode = s.st_mode;
+    for (int i = 0; i < 10; i++) {
+        fputc(ftcbi, mode[i]);
+    }
+	printf("size = %10ld # File size (bytes) \n", (long)s.st_size);
+}
+
+void print_filesize_to_file(FILE *ftcbi, char *pathname) {
+    struct stat s;
+	if (stat(pathname, &s) != 0) {
+		perror(pathname);
+		exit(1);
+	}
+    uint32_t filesize = s.st_size;
+    fwrite(&filesize, 4, 1, ftcbi);
+}
+
+int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
+    int matches_length = num_tbbi_match_bytes(num_blocks);
+    int num_updates = 0;
+    for (int i = 0; i < (matches_length * 8); i++) {
+        int match = fgetc(file);
+        if (match == EOF) {
+            perror("EOF reached while reading match");
+            exit(1);
+        }
+        if (i < num_blocks) {
+            if (match == '1') {
+                updates[i] = false;
+            } else if (match == '0') {
+                updates[i] = true;
+                num_updates++;
+            } else {
+                perror("Expected 1/0");
+                exit(1);
+            }
+        }
+    }
+}
+
+void print_number_of_updates_to_file(FILE *file, int num_updates) {
+    u_int32_t number = num_updates;
+    fwrite(&number, 3, 1, file);
+}
+
+void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_blocks) {
+    FILE *readfile = fopen(pathname, "r");
+    if (readfile == NULL) {
+        return 0;
+    }
+    for (int i = 0; i < num_blocks; i++) {
+        char block[BLOCK_SIZE];
+        memset(block, '\0', sizeof(block));
+        int block_size = fread_next_256byte_block(readfile, block);
+        if (updates[i] == true) {
+            for (int j = 0; j < block_size; j++) {
+                //printf("reading %dth char\n", j);
+                fputc(block[j], readfile);
+            }
+        }
+    }
 }
 
 /// @brief Create a TABI file from an array of filenames.
@@ -256,11 +325,11 @@ void stage_2(char *out_filename, char *in_filename) {
     read_magic(ftabi, magic_number_tabi);
     write_magic(ftbbi, magic_number_tbbi);
 
-    int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
+    int num_of_records = copy_number_of_records_from_file1_to_file2(ftabi, ftbbi); // exit if reached EOF
     for (int i = 0; i < num_of_records; i++) {
 
-        char *pathname = copy_pathname_and_length_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
-        int num_blocks = copy_num_blocks_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
+        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftabi, ftbbi); // exit if EOF found
+        int num_blocks = copy_num_blocks_from_file1_to_file2(ftabi, ftbbi); // exit if EOF found
         write_matches(num_blocks, pathname, ftabi, ftbbi);
         free(pathname);
     }
@@ -278,13 +347,45 @@ void stage_2(char *out_filename, char *in_filename) {
 /// @param out_filename A path to where the new TCBI file should be created.
 /// @param in_filename A path to where the existing TBBI file is located.
 void stage_3(char *out_filename, char *in_filename) {
-    // open tbbi
-    // if NULL exit
-    // open tcbi
-    // if NULL exit
+    char magic_number_tbbi[] = {0x54, 0x42, 0x42, 0x49};
+    char magic_number_tcbi[] = {0x54, 0x43, 0x42, 0x49};
 
-    // read_tbbi_magic()
-    // write_tcci_magic()
+    FILE *ftbbi = fopen(in_filename, "r");
+    if (ftbbi == NULL) {
+        perror(in_filename);
+        exit(1);
+    }
+    FILE *ftcbi = fopen(out_filename, "w");
+    if (ftcbi == NULL) {
+        perror(out_filename);
+        exit(1);
+    }
+    read_magic(ftbbi, magic_number_tbbi);
+    write_magic(ftcbi, magic_number_tcbi);
+
+    int num_of_records = copy_number_of_records_from_file1_to_file2(ftbbi, ftcbi); // exit if reached EOF
+    
+    for (int i = 0; i < num_of_records; i++) {
+
+        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
+        int num_blocks = copy_num_blocks_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
+        
+        print_mode_to_file(ftcbi, pathname);
+        print_filesize_to_file(ftcbi, pathname);
+        bool updates[num_blocks];
+        // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
+        int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
+        print_number_of_updates_to_file(ftcbi, num_updates);
+        write_updates_to_file(ftcbi, pathname, updates, num_blocks);
+        free(pathname);
+    }
+
+    if (fgetc(ftbbi) != EOF) {
+        perror("EOF not reached after reading given number of records");
+        exit(1);
+    }
+    fclose(ftbbi);
+    fclose(ftcbi);
 
 }
 
