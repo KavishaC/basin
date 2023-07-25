@@ -196,18 +196,18 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         matches <<= 1;
         if (i < num_blocks) {
             uint64_t hash_read = fread_hash(ftabi);
-            printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
+            //printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
             if (in_file != NULL) {
                 uint64_t hash_generated = generate_hash(in_file);
-                printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
+                //printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                 if (hash_read == hash_generated) {
-                    printf("matches += 1\n");
+                    //printf("matches += 1\n");
                     matches |= 1;
                 }
             }
         }
-        printf("matches array at i = %d:   0x%lx\n", i, matches);
+        //printf("matches array at i = %d:   0x%lx\n", i, matches);
     }
     fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
@@ -264,7 +264,7 @@ void stage_2(char *out_filename, char *in_filename) {
 
     int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
     for (int i = 0; i < num_of_records; i++) {
-        printf("reading i = %d\n", i);
+        //printf("reading i = %d\n", i);
 
         char *pathname = copy_pathname_and_length_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
         // read number of blocks from tabi
