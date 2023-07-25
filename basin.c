@@ -195,7 +195,7 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
         perror("EOF reached while reading num_blocks");
         exit(1);
     }
-    printf("number of blocks read as %u", num_blocks);
+    printf("number of blocks read as %u\n", num_blocks);
     return (int)num_blocks;
 }
 
@@ -444,12 +444,14 @@ void stage_3(char *out_filename, char *in_filename) {
         
         print_mode_to_file(ftcbi, pathname);
         print_filesize_to_file(ftcbi, pathname);
-        bool updates[num_blocks];
-        // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
-        int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
-        printf("number of updates for i = %d: %d", i, num_updates);
-        print_number_of_updates_to_file(ftcbi, num_updates);
-        write_updates_to_file(ftcbi, pathname, updates, num_blocks);
+        if (num_blocks != 0) {
+            bool updates[num_blocks];
+            // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
+            int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
+            printf("number of updates for i = %d: %d", i, num_updates);
+            print_number_of_updates_to_file(ftcbi, num_updates);
+            write_updates_to_file(ftcbi, pathname, updates, num_blocks);
+        }
         free(pathname);
     }
 
