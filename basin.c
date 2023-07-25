@@ -291,7 +291,8 @@ void print_number_of_updates_to_file(FILE *file, int num_updates) {
 void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_blocks) {
     FILE *readfile = fopen(pathname, "r");
     if (readfile == NULL) {
-        return 0;
+        perror(readfile);
+        exit(1);
     }
     for (int i = 0; i < num_blocks; i++) {
         char block[BLOCK_SIZE];
