@@ -43,6 +43,15 @@ void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
     fwrite(&number, 8, 1, fout);
 }
 
+void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
+    uint64_t result = 0;
+
+    for (int i = 0; i < byte_length; i++) {
+        result |= ((number >> (i * 8)) & 0xFF) << ((byte_length - 1 - i) * 8);
+    }
+    fwrite(&number, byte_length, 1, fout);
+}
+
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
@@ -194,8 +203,8 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         }
         matches <<= 1;
     }
-
-    fwrite(&matches, matches_length, 1, ftbbi);
+    fwrite_big_endian_64(ftbbi, matches, matches_length);
+    //fwrite(&matches, matches_length, 1, ftbbi);
     fclose(in_file);
 }
 
