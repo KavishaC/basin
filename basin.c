@@ -45,11 +45,12 @@ void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
 
 void fread_next_256byte_block(FILE *fin, char block[]) {
     for (int j = 0; j < 256; j++) {
+        printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) != EOF ) {
             return;
         }
-        printf("assigning block[%d] = %c", j, c);
+        printf("assigning block[%d] = %c\n", j, c);
         block[j] = c;
     }
 }
