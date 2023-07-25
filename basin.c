@@ -65,13 +65,13 @@ void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
-        printf("reading %dth char\n", j);
+        //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
             //printf("char is EOF\n", j);
             return result;
         }
-        printf("assigning block[%d] = %c\n", j, c);
+        //printf("assigning block[%d] = %c\n", j, c);
         result++;
         block[j] = c;
     }
@@ -339,7 +339,7 @@ void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_b
             fwrite(&i, 3, 1, file);
             fwrite(&block_size, 2, 1, file);
             for (int j = 0; j < block_size; j++) {
-                //printf("reading %dth char\n", j);
+                printf("writing %dth char %c\n", j, block[j]);
                 fputc(block[j], readfile);
             }
         }
