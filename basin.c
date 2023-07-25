@@ -52,6 +52,16 @@ void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
     fwrite(&number, byte_length, 1, fout);
 }
 
+/* uint64_t fread_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
+    uint64_t result = 0;
+
+    for (int i = 0; i < byte_length; i++) {
+        result |= ((number >> (i * 8)) & 0xFF) << ((byte_length - 1 - i) * 8);
+    }
+    fwrite(&number, byte_length, 1, fout);
+
+} */
+
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
@@ -272,8 +282,23 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
 int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     int num_updates = 0;
-    for (int i = 0; i < (matches_length * 8); i++) {
-        int match = fgetc(file);
+    u_int64_t matches = 0;
+    for (int i = 0; i < matches_length; i++) {
+        uint8_t b;
+        fread(&b, 1, 1, file);
+        matches |= ((uint64_t)b) << (8 * i);
+    }
+    for (int i = 0; i < num_blocks; i++) {
+        bool match = ((matches >> ((matches_length * 8 - 1) - i)) & 1);
+        if (match) {
+            updates[i] = false;
+        } else {
+            updates[i] = true;
+            num_updates++;
+        } 
+    }
+
+/*     for (int i = 0; i < (matches_length * 8); i++) {
         printf("reading %dth bit from matches = %d\n", i, match);
         if (match == EOF) {
             perror("EOF reached while reading match");
@@ -290,7 +315,7 @@ int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
                 exit(1);
             }
         }
-    }
+    } */
     return num_updates;
 }
 
