@@ -61,7 +61,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    printf("pathname_lenght %u\n", pathname_length);
+    //printf("pathname_lenght %u\n", pathname_length);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
@@ -71,6 +71,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     fwrite_little_endian_24(fout, num_of_blocks);
 
     for (int i = 0; i < num_of_blocks; i++) {
+        printf("printing blocks: i = %d", i);
         char block[BLOCK_SIZE];
         fread_next_256byte_block(fin, block);
         uint64_t hash = hash_block(block, BLOCK_SIZE);
