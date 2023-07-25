@@ -68,7 +68,7 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
         printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            printf("char is EOF\n", j);
+            //printf("char is EOF\n", j);
             return result;
         }
         printf("assigning block[%d] = %c\n", j, c);
@@ -281,7 +281,7 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
     fwrite(&filesize, 4, 1, ftcbi);
 }
 
-int read_matches_and_get_updates(FILE *file, bool updates[], int num_blocks) {
+int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     int num_updates = 0;
     u_int64_t matches = 0;
@@ -326,7 +326,7 @@ void print_number_of_updates_to_file(FILE *file, int num_updates) {
     fwrite(&number, 3, 1, file);
 }
 
-void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_blocks) {
+void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_blocks) {
     FILE *readfile = fopen(pathname, "r");
     if (readfile == NULL) {
         perror("readfile unreadable");
