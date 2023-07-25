@@ -69,7 +69,7 @@ void fwrite_hash(FILE *fout, FILE *fin) {
 
 uint64_t fread_hash(FILE *ftabi) {
     uint64_t hash;
-    if (fread(&hash, 8, 1, ftabi) < 8) {
+    if (fread(&hash, 8, 1, ftabi) == 0) {
         perror("EOF reached while reading hash");
         exit(1);
     }
@@ -105,7 +105,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         //printf("\nprinting blocks: i = %d\n", i);
         fwrite_hash(fout, fin);
     }
-    return 0;
+return 0;
 }
 
 void fwrite_magic_tabi(FILE *fout) {
@@ -146,7 +146,7 @@ int copy_number_of_records_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
 char *copy_pathname_and_length_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
     //printf("pathname_lenght %u\n", pathname_length);
     u_int16_t pathname_length;
-    if (fread(&pathname_length, 2, 1, ftabi) < 2) {
+    if (fread(&pathname_length, 2, 1, ftabi) == 0) {
         perror("reached EOF at pathlength");
         exit(1);
     };
@@ -168,7 +168,7 @@ char *copy_pathname_and_length_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
 
 int copy_num_blocks_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
     uint32_t num_blocks;
-    if (fread(&num_blocks, 3, 1, ftabi) < 3) {
+    if (fread(&num_blocks, 3, 1, ftabi) == 0) {
         perror("EOF reached while reading num_blocks");
         exit(1);
     }
