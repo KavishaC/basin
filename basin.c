@@ -447,8 +447,9 @@ void stage_3(char *out_filename, char *in_filename) {
         print_mode_to_file(ftcbi, pathname);
         print_filesize_to_file(ftcbi, pathname);
         if (num_blocks != 0) {
-            bool updates[num_blocks];
             // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
+            int updates[num_blocks + 1];
+            updates[num_blocks + 1] = -1;
             int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
             printf("number of updates for i = %d: %d\n", i, num_updates);
             print_number_of_updates_to_file(ftcbi, num_updates);
