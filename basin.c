@@ -181,20 +181,21 @@ int copy_num_blocks_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
 
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
-    uint64_t hash = 0;
+    uint64_t matches = 0;
     int matches_length = num_tbbi_match_bytes(num_blocks);
     for (int i = 0; i < matches_length; i++) {
         if (i < num_blocks) {
-            if ((fread_hash(ftabi) == generate_hash(in_file)) && (in_file != NULL)) {
-                hash += 1;
+            uint64_t hash_read = fread_hash(ftabi);
+            if (in_file != NULL) {
+                if (hash_read == generate_hash(in_file)) {
+                    matches += 1;
+                }
             }
         }
-        hash <<= 1;
+        matches <<= 1;
     }
-    //pad and write
 
-    fwrite(&hash, num_blocks, 1, ftbbi);
-
+    fwrite(&matches, matches_length, 1, ftbbi);
     fclose(in_file);
 }
 
