@@ -65,17 +65,17 @@ void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
-        printf("reading %dth char\n", j);
+        //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
             //printf("char is EOF\n", j);
             return result;
         }
-        printf("assigning block[%d] = %c\n", j, c);
+        //printf("assigning block[%d] = %c\n", j, c);
         result++;
         block[j] = c;
     }
-    printf("returning result = %d\n", result);
+    //printf("returning result = %d\n", result);
     return result;
 }
 
@@ -115,7 +115,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    //printf("pathname_lenght %u\n", pathname_length);
+    ////printf("pathname_lenght %u\n", pathname_length);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
@@ -125,7 +125,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     fwrite_little_endian_24(fout, num_of_blocks);
 
     for (int i = 0; i < num_of_blocks; i++) {
-        //printf("\nprinting blocks: i = %d\n", i);
+        ////printf("\nprinting blocks: i = %d\n", i);
         fwrite_hash(fout, fin);
     }
 return 0;
@@ -158,7 +158,7 @@ int copy_number_of_records_from_file1_to_file2(FILE *file1, FILE *file2) {
 }
 
 char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
-    //printf("pathname_lenght %u\n", pathname_length);
+    ////printf("pathname_lenght %u\n", pathname_length);
     u_int16_t pathname_length;
     if (fread(&pathname_length, 2, 1, file1) == 0) {
         perror("reached EOF at pathlength");
@@ -196,7 +196,7 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
         perror("EOF reached while reading num_blocks");
         exit(1);
     }
-    printf("number of blocks read as %u\n", num_blocks);
+    //printf("number of blocks read as %u\n", num_blocks);
     return (int)num_blocks;
 }
 
@@ -208,18 +208,18 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         matches <<= 1;
         if (i < num_blocks) {
             uint64_t hash_read = fread_hash(ftabi);
-            //printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
+            ////printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
             if (in_file != NULL) {
                 uint64_t hash_generated = generate_hash(in_file);
-                //printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
+                ////printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                 if (hash_read == hash_generated) {
-                    //printf("matches += 1\n");
+                    ////printf("matches += 1\n");
                     matches |= 1;
                 }
             }
         }
-        //printf("matches array at i = %d:   0x%lx\n", i, matches);
+        ////printf("matches array at i = %d:   0x%lx\n", i, matches);
     }
     fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
@@ -244,28 +244,28 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
         fputc(mode[i], ftcbi);
     } */
     if (S_ISREG(s.st_mode)) {
-        //printf("filetype is regular\n");
+        ////printf("filetype is regular\n");
         fputc('-', ftcbi);
     } else {
         fputc('0', ftcbi);
     }
     /* 
       if ((mode & S_IFMT) == S_IFREG) {
-        printf("Regular file\n");
+        //printf("Regular file\n");
     } else if ((mode & S_IFMT) == S_IFDIR) {
-        printf("Directory\n");
+        //printf("Directory\n");
     } else if ((mode & S_IFMT) == S_IFLNK) {
-        printf("Symbolic link\n");
+        //printf("Symbolic link\n");
     } else if ((mode & S_IFMT) == S_IFIFO) {
-        printf("FIFO or pipe\n");
+        //printf("FIFO or pipe\n");
     } else if ((mode & S_IFMT) == S_IFSOCK) {
-        printf("Socket\n");
+        //printf("Socket\n");
     } else if ((mode & S_IFMT) == S_IFCHR) {
-        printf("Character device\n");
+        //printf("Character device\n");
     } else if ((mode & S_IFMT) == S_IFBLK) {
-        printf("Block device\n");
+        //printf("Block device\n");
     } else {
-        printf("Unknown file type\n");
+        //printf("Unknown file type\n");
     }
      */
     strmode(ftcbi, s.st_mode);
@@ -301,7 +301,7 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     }
 
 /*     for (int i = 0; i < (matches_length * 8); i++) {
-        printf("reading %dth bit from matches = %d\n", i, match);
+        //printf("reading %dth bit from matches = %d\n", i, match);
         if (match == EOF) {
             perror("EOF reached while reading match");
             exit(1);
@@ -336,12 +336,12 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(readfile, block);
-        printf("\ni = %d: block size = %d\n", i, block_size);
+        //printf("\ni = %d: block size = %d\n", i, block_size);
         if (updates[i] == true) {
             fwrite(&i, 3, 1, file);
             fwrite(&block_size, 2, 1, file);
             for (int j = 0; j < block_size; j++) {
-                printf("writing %dth char %c\n", j, block[j]);
+                //printf("writing %dth char %c\n", j, block[j]);
                 fputc(block[j], file);
             }
         }
@@ -450,7 +450,7 @@ void stage_3(char *out_filename, char *in_filename) {
             int updates[num_blocks + 1];
             updates[num_blocks] = -1;
             int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
-            printf("number of updates for i = %d: %d\n", i, num_updates);
+            ////printf("number of updates for i = %d: %d\n", i, num_updates);
             print_number_of_updates_to_file(ftcbi, num_updates);
         if (num_blocks != 0) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
