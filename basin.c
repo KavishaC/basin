@@ -200,7 +200,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
 
             if (in_file != NULL) {
                 uint64_t hash_generated = generate_hash(in_file);
-                printf("generate_hash at i = %d: 0x%lx\n", i, hash_read);
+                printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                 if (hash_read == hash_generated) {
                     printf("matches += 1\n");
                     matches += 1;
