@@ -222,7 +222,7 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
 /*     for (int i = 0; i < 10; i++) {
         fputc(mode[i], ftcbi);
     } */
-    if ((s.st_mode & S_IFMT) == S_IFREG) {
+    if (S_ISREG(s.st_mode)) {
         fputc('-', ftcbi);
     } else {
         fputc('0', ftcbi);
