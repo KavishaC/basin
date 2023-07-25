@@ -49,6 +49,7 @@ void fread_next_256byte_block(FILE *fin, char block[]) {
         if ((c = fgetc(fin)) != EOF ) {
             return;
         }
+        printf("assigning block[%d] = %c", j, c);
         block[j] = c;
     }
 }
@@ -74,7 +75,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         printf("printing blocks: i = %d\n", i);
         char block[BLOCK_SIZE];
         fread_next_256byte_block(fin, block);
-        uint64_t hash = hash_block(block, BLOCK_SIZE);
+        uint64_t hash = hash_block(block, 8);
         fwrite_little_endian_64(fout, hash);
     }
     return 0;
