@@ -81,7 +81,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         for (int j = 0; j < BLOCK_SIZE; j++) {
             printf("%c", block[j]);
         }
-        uint64_t hash = hash_block(block, 8);
+        uint64_t hash = hash_block(block, 256);
         fwrite_little_endian_64(fout, hash);
     }
     return 0;
