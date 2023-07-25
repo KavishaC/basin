@@ -63,7 +63,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     u_int16_t pathname_length = strlen(in_filename);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
-        fputc(fout, in_filename[i]);
+        fputc(in_filename[i], fout);
     }
 
     uint32_t num_of_blocks = number_of_blocks_in_file(s.st_size);
@@ -75,12 +75,13 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         uint64_t hash = hash_block(block, BLOCK_SIZE);
         fwrite_little_endian_64(fout, hash);
     }
+    return 0;
 }
 
 void fwrite_magic_tabi(FILE *fout) {
     char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
     for (int i = 0; i < 4; i++) {
-        fputc(fout ,magic_number_tabi[i]);
+        fputc(magic_number_tabi[i], fout);
     }
 }
 
@@ -96,7 +97,6 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
     FILE *fout = fopen(out_filename, "w");
     if (fout == NULL) {
         perror(out_filename);
-        return 1;
     } 
 
     fwrite_magic_tabi(fout);
