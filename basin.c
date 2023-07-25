@@ -23,6 +23,66 @@
 
 #include "basin.h"
 
+void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
+    number = (number << 8) | (number >> 8);
+    fwrite(&number, 2, 1, fout);
+}
+
+void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
+    number = ((number << 16) & 0x00FF0000) | (number & 0x0000FF00) | ((number >> 16) & 0x000000FF);
+    number = number << 8;
+    fwrite(&number, 3, 1, fout);
+}
+
+void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
+    uint64_t result = 0;
+
+    for (int i = 0; i < sizeof(uint64_t); i++) {
+        result |= ((number >> (i * 8)) & 0xFF) << ((sizeof(uint64_t) - 1 - i) * 8);
+    }
+    fwrite(&result, 8, 1, fout);
+}
+
+void fread_next_256byte_block(FILE *fin, char block[]) {
+    for (int j = 0; j < 256; j++) {
+        int c;
+        if ((c = fgetc(fin)) != EOF ) {
+            return;
+        }
+        block[j] = c;
+    }
+}
+
+int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
+    struct stat s;
+    if (stat(in_filename, &s) != 0) {
+        perror(in_filename);
+        return 1;
+    }
+
+    u_int16_t pathname_length = strlen(in_filename);
+    fwrite_little_endian_16(fout, pathname_length);
+    for (int i = 0; i < pathname_length; i++) {
+        fputc(fout, in_filename[i]);
+    }
+
+    uint32_t num_of_blocks = number_of_blocks_in_file(s.st_size);
+    fwrite_little_endian_24(fout, num_of_blocks);
+
+    for (int i = 0; i < num_of_blocks; i++) {
+        char block[BLOCK_SIZE];
+        fread_next_256byte_block(fin, block);
+        uint64_t hash = hash_block(block, BLOCK_SIZE);
+        fwrite_little_endian_64(fout, hash);
+    }
+}
+
+void fwrite_magic_tabi(FILE *fout) {
+    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+    for (int i = 0; i < 4; i++) {
+        fputc(fout ,magic_number_tabi[i]);
+    }
+}
 
 /// @brief Create a TABI file from an array of filenames.
 /// @param out_filename A path to where the new TABI file should be created.
@@ -32,9 +92,28 @@
 ///                         subset 5, when this is zero, you should include
 ///                         everything in the current directory.
 void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) {
-    // TODO: implement this.
-}
+    
+    FILE *fout = fopen(out_filename, "w");
+    if (fout == NULL) {
+        perror(out_filename);
+        return 1;
+    } 
 
+    fwrite_magic_tabi(fout);
+    fputc(fout, (u_int8_t)num_in_filenames);
+
+    for (int i = 0; i < num_in_filenames; i++) {
+        char *in_filename = in_filenames[i];
+        FILE *fin = fopen(in_filename, "r");
+        if (fin == NULL) {
+            perror(in_filename);
+            return 1;
+        }
+        fwrite_record(fout, fin, in_filename);
+        fclose(fin);
+    }
+    fclose(fout);
+}
 
 /// @brief Create a TBBI file from a TABI file.
 /// @param out_filename A path to where the new TBBI file should be created.
