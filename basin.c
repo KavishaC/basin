@@ -59,6 +59,22 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
     return result;
 }
 
+void fwrite_hash(FILE *fout, FILE *fin) {
+    char block[BLOCK_SIZE];
+    memset(block, '\0', sizeof(block));
+    int block_size = fread_next_256byte_block(fin, block);
+    uint64_t hash = hash_block(block, block_size);
+    fwrite_little_endian_64(fout, hash);
+}
+
+uint64_t generate_hash(FILE *fin) {
+    char block[BLOCK_SIZE];
+    memset(block, '\0', sizeof(block));
+    int block_size = fread_next_256byte_block(fin, block);
+    uint64_t hash = hash_block(block, block_size);
+    return hash;
+}
+
 int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     struct stat s;
     if (stat(in_filename, &s) != 0) {
@@ -78,14 +94,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
 
     for (int i = 0; i < num_of_blocks; i++) {
         //printf("\nprinting blocks: i = %d\n", i);
-        char block[BLOCK_SIZE];
-        memset(block, '\0', sizeof(block));
-        int block_size = fread_next_256byte_block(fin, block);
-/*         for (int j = 0; j < BLOCK_SIZE; j++) {
-            printf("%c", block[j]);
-        } */
-        uint64_t hash = hash_block(block, block_size);
-        fwrite_little_endian_64(fout, hash);
+        fwrite_hash(fout, fin);
     }
     return 0;
 }
@@ -95,6 +104,84 @@ void fwrite_magic_tabi(FILE *fout) {
     for (int i = 0; i < 4; i++) {
         fputc(magic_number_tabi[i], fout);
     }
+}
+
+void read_tabi_magic(FILE *ftabi) {
+    char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
+    for (int i = 0; i < 4; i++) {
+        if (fgetc(ftabi) != magic_number_tabi[i]) {
+            perror("tabi magic wrong");
+            exit(1);
+        }
+    }
+}
+
+void fwrite_magic_tabi(FILE *ftbbi) {
+    char magic_number_tbbi[] = {0x54, 0x42, 0x42, 0x49};
+    for (int i = 0; i < 4; i++) {
+        fputc(magic_number_tbbi[i], ftbbi);
+    }
+}
+
+void fwrite_match(ftabi, ftbbi, in_file) {
+    fwrite_match(ftabi, ftbbi, in_file);
+}
+
+int copy_number_of_records_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
+    int read = fgetc(ftabi);
+    if (read == EOF) {
+        perror("EOF reached while reading number of records");
+        exit(1);
+    }
+    u_int8_t num_of_records = read;
+    fputc(num_of_records, ftbbi);
+    return read;
+}
+
+char *copy_pathname_and_length_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
+    //printf("pathname_lenght %u\n", pathname_length);
+    u_int16_t pathname_length;
+    if (fread(&pathname_length, 2, 1, ftabi) < 2) {
+        perror("reached EOF at pathlength");
+        exit(1);
+    };
+
+    fwrite(&pathname_length, 2, 1, ftbbi);
+    char pathname[pathname_length + 1];
+    pathname[pathname_length] = '\0';
+    for (int i = 0; i < pathname_length; i++) {
+        int read = fgetc(ftabi);
+        if (read == EOF) {
+            perror("reached EOF at pathname");
+            exit(1);
+        }
+        fputc((char)read, ftbbi);
+        pathname[i] = (char)read;
+    }
+    return pathname;
+}
+
+int copy_num_blocks_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
+    uint32_t num_blocks;
+    if (fread(&num_blocks, 3, 1, ftabi) < 3) {
+        perror("EOF reached while reading num_blocks");
+        exit(1);
+    }
+    fwrite(&num_blocks, 3, 1, ftbbi);
+    return (int)num_blocks;
+}
+
+void write_hash(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
+    FILE *in_file = fopen(pathname, "r");
+    uint64_t hash = 0;
+    for (int i = 0; i < num_blocks; i++) {
+        if ((fread_hash(ftabi) == generate_hash(in_file)) && (in_file != NULL)) {
+            hash += 1;
+        }
+        hash <<= 1;
+    }
+    fwrite(&hash, num_blocks, 1, ftbbi);
+    fclose(in_file);
 }
 
 /// @brief Create a TABI file from an array of filenames.
@@ -125,18 +212,45 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         fclose(fin);
     }
     fclose(fout);
-/*     char block[256];
-    block[0] = 'a';
-
-    uint64_t hash = hash_block(block, 1);
-    printf("\nhash of a : %lx", hash); */
 }
 
 /// @brief Create a TBBI file from a TABI file.
 /// @param out_filename A path to where the new TBBI file should be created.
 /// @param in_filename A path to where the existing TABI file is located.
 void stage_2(char *out_filename, char *in_filename) {
-    // TODO: implement this.
+
+    FILE *ftabi = fopen(in_filename, "r");
+    if (ftabi == NULL) {
+        perror(in_filename);
+        exit(1);
+    }
+    FILE *ftbbi = fopen(out_filename, "w");
+    if (ftbbi == NULL) {
+        perror(out_filename);
+        exit(1);
+    }
+    read_tabi_magic(ftabi); // exit if incorrect
+    write_tbbi_magic(ftabi);
+
+    int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
+    // for each record
+    for (int i = 0; i < num_of_records; i++) {
+        // read pathname from tabi and write to tbbi
+        char *pathname = copy_pathname_and_length_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
+        // read number of blocks from tabi
+        int num_blocks = copy_num_blocks_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
+        // open filestream
+        // if file == NULL assign all bits to 0
+        write_hash(num_blocks, pathname, ftabi, ftbbi);
+    }
+
+    if (fgetc(ftabi) != EOF) {
+        // you read somethi ng else even though youre supposed to be done => exit(1)
+        perror("EOF not reached after reading given number of records");
+        exit(1);
+    }
+    fclose(ftabi);
+    fclose(ftbbi);
 }
 
 
