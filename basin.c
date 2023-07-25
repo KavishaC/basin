@@ -195,6 +195,7 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
         perror("EOF reached while reading num_blocks");
         exit(1);
     }
+    printf("number of blocks read as %u", num_blocks);
     return (int)num_blocks;
 }
 
