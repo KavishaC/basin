@@ -24,7 +24,7 @@
 #include "basin.h"
 
 void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
-    number = (number << 8) | (number >> 8);
+    /number = (number << 8) | (number >> 8);
     fwrite(&number, 2, 1, fout);
 }
 
