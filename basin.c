@@ -234,13 +234,13 @@ void stage_2(char *out_filename, char *in_filename) {
         perror(out_filename);
         exit(1);
     }
-    read_tabi_magic(ftabi); // exit if incorrect
+    read_tabi_magic(ftabi);
     fwrite_magic_tbbi(ftbbi);
 
     int num_of_records = copy_number_of_records_from_tabi_to_tbbi(ftabi, ftbbi); // exit if reached EOF
-    // for each record
     for (int i = 0; i < num_of_records; i++) {
-        // read pathname from tabi and write to tbbi
+        printf("reading i = %d\n", i);
+
         char *pathname = copy_pathname_and_length_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
         // read number of blocks from tabi
         int num_blocks = copy_num_blocks_from_tabi_to_tbbi(ftabi, ftbbi); // exit if EOF found
