@@ -61,7 +61,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    printf("pathname_lenght %u", pathname_length);
+    printf("pathname_lenght %u\n", pathname_length);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
