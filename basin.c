@@ -335,6 +335,7 @@ void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_b
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(readfile, block);
+        printf("\ni = %d: block size = %d\n", i, block_size);
         if (updates[i] == true) {
             fwrite(&i, 3, 1, file);
             fwrite(&block_size, 2, 1, file);
