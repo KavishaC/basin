@@ -29,7 +29,7 @@ void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
 }
 
 void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
-    number = ((number << 16) & 0x00FF0000) | (number & 0x0000FF00) | ((number >> 16) & 0x000000FF);
+    //number = ((number << 16) & 0x00FF0000) | (number & 0x0000FF00) | ((number >> 16) & 0x000000FF);
     number = number << 8;
     fwrite(&number, 3, 1, fout);
 }
