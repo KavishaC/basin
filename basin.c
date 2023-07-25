@@ -45,13 +45,13 @@ void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
 
 void fread_next_256byte_block(FILE *fin, char block[]) {
     for (int j = 0; j < 256; j++) {
-        printf("reading %dth char\n", j);
+        //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
             printf("char is EOF\n", j);
             return;
         }
-        printf("assigning block[%d] = %c\n", j, c);
+        //printf("assigning block[%d] = %c\n", j, c);
         block[j] = c;
     }
 }
@@ -77,6 +77,9 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         printf("printing blocks: i = %d\n", i);
         char block[BLOCK_SIZE];
         fread_next_256byte_block(fin, block);
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            printf("%c", block[j]);
+        }
         uint64_t hash = hash_block(block, 8);
         fwrite_little_endian_64(fout, hash);
     }
