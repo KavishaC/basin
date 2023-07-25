@@ -326,7 +326,7 @@ void print_number_of_updates_to_file(FILE *file, int num_updates) {
 }
 
 void write_updates_to_file(FILE *file, char* pathname, bool updates[], int num_blocks) {
-    FILE *readfile = fopen(pathname, "r");
+    FILE *readfile = fopen(pathname, "w");
     if (readfile == NULL) {
         perror("readfile unreadable");
         exit(1);
