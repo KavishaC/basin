@@ -122,11 +122,10 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         fclose(fin);
     }
     fclose(fout);
-    char block[256];
-    memset(block, '\0', sizeof(block));
+    char block[1];
     block[0] = 'a';
 
-    uint64_t hash = hash_block(block, 256);
+    uint64_t hash = hash_block(block, 1);
     printf("\nhash of a : %lx", hash);
 }
 
