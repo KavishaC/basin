@@ -79,7 +79,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
         memset(block, 0, sizeof(block));
         fread_next_256byte_block(fin, block);
         for (int j = 0; j < BLOCK_SIZE; j++) {
-            //printf("%c", block[j]);
+            printf("%c", block[j]);
         }
         uint64_t hash = hash_block(block, 256);
         fwrite_little_endian_64(fout, hash);
