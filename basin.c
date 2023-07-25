@@ -143,7 +143,7 @@ char *copy_pathname_and_length_from_tabi_to_tbbi(FILE *ftabi, FILE *ftbbi) {
     };
 
     fwrite(&pathname_length, 2, 1, ftbbi);
-    char pathname[pathname_length + 1];
+    char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
     for (int i = 0; i < pathname_length; i++) {
         int read = fgetc(ftabi);
@@ -238,6 +238,7 @@ void stage_2(char *out_filename, char *in_filename) {
         // open filestream
         // if file == NULL assign all bits to 0
         write_hash(num_blocks, pathname, ftabi, ftbbi);
+        free(pathname);
     }
 
     if (fgetc(ftabi) != EOF) {
