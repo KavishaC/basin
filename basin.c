@@ -75,6 +75,7 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
         result++;
         block[j] = c;
     }
+    printf("returning result = %d\n", result);
     return result;
 }
 
@@ -243,7 +244,7 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
         fputc(mode[i], ftcbi);
     } */
     if (S_ISREG(s.st_mode)) {
-        printf("filetype is regular\n");
+        //printf("filetype is regular\n");
         fputc('-', ftcbi);
     } else {
         fputc('0', ftcbi);
