@@ -201,7 +201,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
                 }
             }
         }
-        printf("matches at i = %d: %lx", i, matches);
+        printf("matches at i = %d: %lx\n", i, matches);
         matches <<= 1;
     }
     fwrite_big_endian_64(ftbbi, matches, matches_length);
