@@ -179,6 +179,15 @@ int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
     return (int)num_blocks;
 }
 
+int get_number_blocks_ftbbi(FILE *ftbbi) {
+    uint32_t num_blocks;
+    if (fread(&num_blocks, 3, 1, ftbbi) == 0) {
+        perror("EOF reached while reading num_blocks");
+        exit(1);
+    }
+    return (int)num_blocks;
+}
+
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
     uint64_t matches = 0;
@@ -404,7 +413,7 @@ void stage_3(char *out_filename, char *in_filename) {
     for (int i = 0; i < num_of_records; i++) {
 
         char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
-        int num_blocks = copy_num_blocks_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
+        int num_blocks = get_number_blocks_ftbbi(ftbbi); // exit if EOF found
         
         print_mode_to_file(ftcbi, pathname);
         print_filesize_to_file(ftcbi, pathname);
