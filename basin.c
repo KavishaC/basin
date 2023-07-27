@@ -59,7 +59,7 @@ uint64_t fread_little_endian(FILE *fout, int num_bytes) {
             perror("EOF reached while reading little endian");
             exit(1);
         }
-        number |= ((uint8_t)c) << (8 * i);
+        number |= ((uint64_t)c) << (8 * i);
     }
     return number;
 }
