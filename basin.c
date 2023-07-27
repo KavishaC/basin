@@ -686,8 +686,8 @@ void stage_4(char *in_filename) {
 
     for (int i = 0; i < num_records; i++) {
         char *pathname = read_pathname(ftcbi);
-        printf("Came here successfully\n");
         FILE *target = fopen(pathname, "r+");
+        printf("Came here successfully\n");
         if (target == NULL) {
             target = fopen(pathname, "w");
             if (target == NULL) {
