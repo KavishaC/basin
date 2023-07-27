@@ -739,11 +739,7 @@ int read_num_updates(FILE *ftcbi) {
 }
 
 int read_block_index(FILE *ftcbi) {
-    uint32_t index;
-    if (fread(&index, BLOCK_INDEX_SIZE, 1, ftcbi) < 1) {
-        perror("Found EOF while reading block index");
-        exit(1);
-    };
+    uint32_t index = fread_little_endian_24(ftcbi);
     return (int)index;
 }
 
