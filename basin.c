@@ -288,7 +288,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         if (i < num_blocks) {
             if (in_file == NULL) {
                 printf("in_file = NULL printed 0\n");
-                fputc('0', ftbbi);
+                fputc(0, ftbbi);
             } else {
                 uint64_t hash_read = fread_hash(ftabi);
                 printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
@@ -299,16 +299,16 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
                 if (hash_read == hash_generated) {
                     ////printf("matches += 1\n");
                     printf("hashes matched printed 1\n");
-                    fputc('1', ftbbi);
+                    fputc(0, ftbbi);
                 } else {
                     printf("hashes didn't match printed 0\n");
-                    fputc('0', ftbbi);
+                    fputc(0, ftbbi);
                 }
             //}
             }
         } else {
             printf("i=%d >= num_block=%d printed 0\n", i, num_blocks);
-            fputc('0', ftbbi);
+            fputc(0, ftbbi);
         }
         ////printf("matches array at i = %d:   0x%lx\n", i, matches);
     }
