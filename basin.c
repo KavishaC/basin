@@ -289,19 +289,23 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     for (int i = 0; i < (matches_length * 8); i++) {
         if (i < num_blocks) {
-            uint64_t hash_read = fread_hash(ftabi);
+            if (in_file == NULL) {
+                fputc('0', ftbbi);
+            } else {
+                uint64_t hash_read = fread_hash(ftabi);
             ////printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
-            //if (in_file != NULL) {
-            uint64_t hash_generated = generate_hash(in_file);
-            ////printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
-            if (hash_read == hash_generated) {
-                ////printf("matches += 1\n");
-                fputc('1', ftbbi);
-            } else {
-                fputc('0', ftbbi);
-            }
+                //if (in_file != NULL) {
+                uint64_t hash_generated = generate_hash(in_file);
+                ////printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
+                if (hash_read == hash_generated) {
+                    ////printf("matches += 1\n");
+                    fputc('1', ftbbi);
+                } else {
+                    fputc('0', ftbbi);
+                }
             //}
+            }
         } else {
             fputc('0', ftbbi);
         }
