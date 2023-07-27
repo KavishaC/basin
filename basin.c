@@ -287,7 +287,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     for (int i = 0; i < (matches_length * 8); i++) {
         if (i < num_blocks) {
             if (in_file == NULL) {
-                printf("in_file = NULL printed 0\n", i, num_blocks);
+                printf("in_file = NULL printed 0\n");
                 fputc('0', ftbbi);
             } else {
                 uint64_t hash_read = fread_hash(ftabi);
