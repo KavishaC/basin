@@ -818,6 +818,19 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
         //putchar(block[i]);    
         fputc(block[i], target);    
     }
+    if (block_size != BLOCK_SIZE) {
+        long currentPosition = ftell(target);
+        if (currentPosition == -1) {
+            perror("Error getting current file position");
+            exit(1);
+        }
+
+        // Step 4: Truncate the file from the current position to delete the content
+        if (ftruncate(fileno(target), currentPosition) != 0) {
+            perror("Error truncating the file");
+            exit(1);
+        } 
+    }
     //fwrite(block, block_size, 1, target);
     //printf("\n");
 
@@ -860,8 +873,8 @@ void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
         fread_next_block(ftcbi, block, block_size);
         update_block(target, block_index, block, block_size);
     }
-    long currentPosition = ftell(target);
-    if (currentPosition == -1) {
+ /*   long currentPosition = ftell(target);
+     if (currentPosition == -1) {
         perror("Error getting current file position");
         exit(1);
     }
@@ -870,7 +883,7 @@ void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     if (ftruncate(fileno(target), currentPosition) != 0) {
         perror("Error truncating the file");
         exit(1);
-    }
+    } */
 }
 
 /// @brief Apply a TCBI file to the filesystem.
