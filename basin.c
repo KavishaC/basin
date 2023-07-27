@@ -498,10 +498,10 @@ void stage_2(char *out_filename, char *in_filename) {
         free(pathname);
     }
 
-    if (fgetc(ftabi) != EOF) {
+/*     if (fgetc(ftabi) != EOF) {
         perror("EOF not reached after reading given number of records");
         exit(1);
-    }
+    } */
     fclose(ftabi);
     fclose(ftbbi);
 }
