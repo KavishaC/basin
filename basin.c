@@ -946,14 +946,14 @@ void stage_4(char *in_filename) {
             exit(1);
         }
 
-        if (fgetc(ftcbi) != EOF) {
-            perror("EOF not reached after reading given number of records");
-            exit(1);
-        }
 
         fclose(target);
 /*      
         */
+    }
+    if (fgetc(ftcbi) != EOF) {
+        perror("EOF not reached after reading given number of records");
+        exit(1);
     }
     fclose(ftcbi);
 }
