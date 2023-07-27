@@ -302,6 +302,8 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
                 fputc('0', ftbbi);
             }
             //}
+        } else {
+            fputc('0', ftbbi);
         }
         ////printf("matches array at i = %d:   0x%lx\n", i, matches);
     }
