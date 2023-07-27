@@ -689,6 +689,7 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
     for (int i=0; i < block_size; i++) {
         putchar(block);        
     }
+    printf("\n");
     fwrite(block, block_size, 1, target);
 }
 
