@@ -686,7 +686,6 @@ void stage_4(char *in_filename) {
 
     for (int i = 0; i < num_records; i++) {
         char *pathname = read_pathname(ftcbi);
-/*         
         FILE *target = fopen(pathname, "r+");
         if (target == NULL) {
             target = fopen(pathname, "w");
@@ -703,6 +702,7 @@ void stage_4(char *in_filename) {
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
         fclose(target);
+/*         
         */
     }
     fclose(ftcbi);
