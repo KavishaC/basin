@@ -416,9 +416,25 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
 int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     int num_updates = 0;
-    u_int64_t matches = 0;
+
     for (int i = 0; i < matches_length; i++) {
         uint8_t b = fgetc(file);
+        for (int j = 0; j < 8; j++) {
+            int k = (i * 8) + j;
+            if (k < num_blocks) {
+                bool match = ((b >> (7 - j)) & 1);
+                if (match) {
+                    updates[k] = false;
+                } else {
+                    updates[k] = true;
+                    num_updates++;
+                } 
+            }
+        }
+    }
+    return num_updates;
+}
+/*     for (int i = 0; i < matches_length; i++) {
         matches |= ((uint64_t)b) << (8 * i);
     }
     for (int i = 0; i < num_blocks; i++) {
@@ -429,7 +445,7 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
             updates[i] = true;
             num_updates++;
         } 
-    }
+    } */
 
 /*     for (int i = 0; i < (matches_length * 8); i++) {
         //printf("reading %dth bit from matches = %d\n", i, match);
@@ -449,8 +465,6 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
             }
         }
     } */
-    return num_updates;
-}
 
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
