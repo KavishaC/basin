@@ -616,12 +616,12 @@ void update_mode(char *filename, mode_t new_mode) {
 }
 
 int read_filesize(FILE *ftcbi) {
-    int filesize;
+    uint8_t filesize;
     if (fread(&filesize, FILE_SIZE_SIZE, 1, ftcbi) < 1) {
         perror("Found EOF while reading filesize");
         exit(1);
     };
-    return filesize;
+    return (int)filesize;
 }
 
 void update_block(FILE *target, int block_index, char block[], int block_size) {
@@ -633,30 +633,30 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
 }
 
 int read_num_updates(FILE *ftcbi) {
-    int num_updates;
+    uint32_t num_updates;
     if (fread(&num_updates, 3, 1, ftcbi) < 1) {
         perror("Found EOF while reading num_updates");
         exit(1);
     };
-    return num_updates;
+    return (int)num_updates;
 }
 
 int read_block_index(FILE *ftcbi) {
-    int index;
+    uint8_t index;
     if (fread(&index, BLOCK_INDEX_SIZE, 1, ftcbi) < 1) {
         perror("Found EOF while reading block index");
         exit(1);
     };
-    return index;
+    return (int)index;
 }
 
 int read_block_size(FILE *ftcbi) {
-    int block_size;
+    u_int16_t block_size;
     if (fread(&block_size, 2, 1, ftcbi) < 1) {
         perror("Found EOF while reading block size");
         exit(1);
     };
-    return block_size;
+    return (int)block_size;
 }
 
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
