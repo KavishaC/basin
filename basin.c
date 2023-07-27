@@ -621,6 +621,7 @@ int read_filesize(FILE *ftcbi) {
         perror("Found EOF while reading filesize");
         exit(1);
     };
+    printf("    uint32_t filesize = %d\n", filesize);
     return (int)filesize;
 }
 
