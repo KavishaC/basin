@@ -689,8 +689,8 @@ void stage_4(char *in_filename) {
         printf("pathname = %s\n", pathname);
         FILE *target = fopen(pathname, "r+");
         if (target == NULL) {
-            printf("target = NULL\n");
             target = fopen(pathname, "w");
+            printf("target = NULL\n");
             if (target == NULL) {
                 perror(pathname);
                 exit(1);
