@@ -422,7 +422,7 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
             //fwrite(&i, 3, 1, file);
             fwrite_little_endian_24(file, i);
             //fwrite(&block_size, 2, 1, file);
-            fwrite_little_endian_24(block_size, i);
+            fwrite_little_endian_24(file, block_size);
             for (int j = 0; j < block_size; j++) {
                 //printf("writing %dth char %c\n", j, block[j]);
                 fputc(block[j], file);
