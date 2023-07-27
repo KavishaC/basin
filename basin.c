@@ -687,6 +687,11 @@ void stage_4(char *in_filename) {
     for (int i = 0; i < num_records; i++) {
         char *pathname = read_pathname(ftcbi);
         printf("pathname = %s\n", pathname);
+        mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
+        if (chmod(pathname, modify_permissions) != 0) {
+            perror("Error changing file permissions");
+            exit(1);
+        }
         FILE *target = fopen(pathname, "r+");
         if (target == NULL) {
             target = fopen(pathname, "w");
