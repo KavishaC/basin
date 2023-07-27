@@ -562,13 +562,31 @@ mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     };
     if (userperm == 'r') {
         new_mode |= S_IRUSR;
-    } else if (userperm == 'w') {
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not r/-");
+        exit(1);
+    }
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'w') {
         new_mode |= S_IWUSR;
-    } else if (userperm == 'x') {
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not w/-");
+        exit(1);
+    }
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'x') {
         new_mode |= S_IXUSR;
     } else if (userperm == '-') {
     } else {
-        perror("userperm not r/w/x/-");
+        perror("userperm not x/-");
         exit(1);
     }
 
@@ -579,15 +597,34 @@ mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     };
     if (groupperm == 'r') {
         new_mode |= S_IRGRP;
-    } else if (groupperm == 'w') {
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not r/-");
+        exit(1);
+    }
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'w') {
         new_mode |= S_IWGRP;
-    } else if (groupperm == 'x') {
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not w/-");
+        exit(1);
+    }
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'x') {
         new_mode |= S_IXGRP;
     } else if (groupperm == '-') {
     } else {
-        perror("groupperm not r/w/x/-");
+        perror("groupperm not x/-");
         exit(1);
     }
+
 
     int otherperm;
     if ((otherperm = fgetc(ftcbi)) == EOF) {
@@ -596,13 +633,31 @@ mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     };
     if (otherperm == 'r') {
         new_mode |= S_IROTH;
-    } else if (otherperm == 'w') {
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not r/-");
+        exit(1);
+    }
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'w') {
         new_mode |= S_IWOTH;
-    } else if (otherperm == 'x') {
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not w/-");
+        exit(1);
+    }
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'x') {
         new_mode |= S_IXOTH;
     } else if (otherperm == '-') {
     } else {
-        perror("otherperm not r/w/x/-");
+        perror("otherperm not x/-");
         exit(1);
     }
     return new_mode;
