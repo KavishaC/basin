@@ -349,7 +349,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
                 }
             }
         }
-        fputc(matches, ftabi);
+        fputc(matches, ftbbi);
     }
     
     if (in_file != NULL) {
