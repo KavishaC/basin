@@ -685,6 +685,7 @@ void stage_4(char *in_filename) {
     }
     verify_magic(ftcbi, magic_number_tcbi);
     int num_records = read_num_records(ftcbi);
+    printf("num records = %d\n", num_records);
 
     for (int i = 0; i < num_records; i++) {
 
