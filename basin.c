@@ -661,10 +661,10 @@ int read_block_size(FILE *ftcbi) {
 
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
-        printf("reading update %d\n", i);
+        printf("        reading update %d\n", i);
         int block_index = read_block_index(ftcbi);
         int block_size = read_block_size(ftcbi);
-        printf("block size read as %d\n", block_size);
+        printf("        block size read as %d\n", block_size);
 
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
@@ -707,9 +707,10 @@ void stage_4(char *in_filename) {
         //printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
-        read_filesize(ftcbi);
+        int filesize = read_filesize(ftcbi);
+        printf("    filesize = %d\n", filesize);
         int num_updates = read_num_updates(ftcbi);
-        printf("number of updates = %d\n", num_updates);
+        printf("    number of updates = %d\n", num_updates);
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
         fclose(target);
