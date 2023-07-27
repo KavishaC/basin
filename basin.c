@@ -412,6 +412,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
     FILE *fout = fopen(out_filename, "w");
     if (fout == NULL) {
         perror(out_filename);
+        exit(1);
     } 
 
     write_magic(fout, magic_number_tabi);
@@ -422,7 +423,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         FILE *fin = fopen(in_filename, "r");
         if (fin == NULL) {
             perror(in_filename);
-            return;
+            exit(1);
         }
         fwrite_record(fout, fin, in_filename);
         fclose(fin);
