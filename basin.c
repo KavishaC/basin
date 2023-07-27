@@ -616,7 +616,7 @@ void update_mode(char *filename, mode_t new_mode) {
 }
 
 int read_filesize(FILE *ftcbi) {
-    uint8_t filesize;
+    uint32_t filesize;
     if (fread(&filesize, FILE_SIZE_SIZE, 1, ftcbi) < 1) {
         perror("Found EOF while reading filesize");
         exit(1);
@@ -642,7 +642,7 @@ int read_num_updates(FILE *ftcbi) {
 }
 
 int read_block_index(FILE *ftcbi) {
-    uint8_t index;
+    uint32_t index;
     if (fread(&index, BLOCK_INDEX_SIZE, 1, ftcbi) < 1) {
         perror("Found EOF while reading block index");
         exit(1);
