@@ -695,12 +695,12 @@ void stage_4(char *in_filename) {
         FILE *target = fopen(pathname, "r+");
         if (target == NULL) {
             target = fopen(pathname, "w");
-            printf("target = %p\n", target);
             if (target == NULL) {
                 perror(pathname);
                 exit(1);
             }
         }
+        printf("target = %p\n", target);
         printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
