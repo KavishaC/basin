@@ -42,11 +42,9 @@ void fwrite_little_endian_32(FILE *fout, u_int32_t number) {
 }
 
 void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
-    uint64_t result = 0;
     for (int i = 0; i < byte_length; i++) {
         fputc((uint8_t)(number >> ((byte_length - 1 - i) * 8)), fout);
     }
-    //fwrite(&number, byte_length, 1, fout);
 }
 
 uint64_t fread_little_endian(FILE *fout, int num_bytes) {
@@ -72,6 +70,10 @@ uint32_t fread_little_endian_24(FILE *fout) {
 
 uint32_t fread_little_endian_32(FILE *fout) {
     return (uint32_t)fread_little_endian(fout, 4);
+}
+
+uint64_t fread_little_endian_64(FILE *fout) {
+    return (uint64_t)fread_little_endian(fout, 8);
 }
 
 /* uint64_t fread_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
