@@ -79,6 +79,23 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
     return result;
 }
 
+int fread_next_block(FILE *fin, char block[], int block_size) {
+    int result = 0;
+    for (int j = 0; j < block_size; j++) {
+        //printf("reading %dth char\n", j);
+        int c;
+        if ((c = fgetc(fin)) == EOF ) {
+            //printf("char is EOF\n", j);
+            return result;
+        }
+        //printf("assigning block[%d] = %c\n", j, c);
+        result++;
+        block[j] = c;
+    }
+    //printf("returning result = %d\n", result);
+    return result;
+}
+
 void fwrite_hash(FILE *fout, FILE *fin) {
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
@@ -644,7 +661,7 @@ void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
 
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
-        int block_size = fread_next_256byte_block(ftcbi, block);
+        fread_next_block(ftcbi, block, block_size);
         update_block(target, block_index, block, block_size);
     }
 }
