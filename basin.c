@@ -65,17 +65,17 @@ void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
-        //printf("reading %dth char\n", j);
+        ////printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            //printf("char is EOF\n", j);
+            ////printf("char is EOF\n", j);
             return result;
         }
-        //printf("assigning block[%d] = %c\n", j, c);
+        ////printf("assigning block[%d] = %c\n", j, c);
         result++;
         block[j] = c;
     }
-    //printf("returning result = %d\n", result);
+    ////printf("returning result = %d\n", result);
     return result;
 }
 
@@ -676,7 +676,7 @@ int read_filesize(FILE *ftcbi) {
         perror("Found EOF while reading filesize");
         exit(1);
     };
-    printf("    uint32_t filesize = %d\n", filesize);
+    //printf("    uint32_t filesize = %d\n", filesize);
     return (int)filesize;
 }
 
@@ -685,11 +685,11 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
         perror("Error while seeking file");
         exit(1);
     }
-    printf("writing block...\n");
+    //printf("writing block...\n");
     for (int i=0; i < block_size; i++) {
         putchar(block[i]);        
     }
-    printf("\n");
+    //printf("\n");
     fwrite(block, block_size, 1, target);
 }
 
@@ -722,11 +722,11 @@ int read_block_size(FILE *ftcbi) {
 
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
-        printf("        reading update %d\n", i);
+        //printf("        reading update %d\n", i);
         int block_index = read_block_index(ftcbi);
-        printf("        block index read as %d\n", block_index);
+        //printf("        block index read as %d\n", block_index);
         int block_size = read_block_size(ftcbi);
-        printf("        block size read as %d\n", block_size);
+        //printf("        block size read as %d\n", block_size);
 
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
@@ -747,12 +747,12 @@ void stage_4(char *in_filename) {
     }
     verify_magic(ftcbi, magic_number_tcbi);
     int num_records = read_num_records(ftcbi);
-    printf("num records = %d\n", num_records);
+    //printf("num records = %d\n", num_records);
 
     for (int i = 0; i < num_records; i++) {
 
         char *pathname = read_pathname(ftcbi);
-        printf("record = %s\n", pathname);
+        //printf("record = %s\n", pathname);
         mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
         if (chmod(pathname, modify_permissions) != 0) {
             perror("Error changing file permissions");
@@ -766,14 +766,14 @@ void stage_4(char *in_filename) {
                 exit(1);
             }
         }
-        //printf("target = %p\n", target);
-        //printf("Came here successfully\n");
+        ////printf("target = %p\n", target);
+        ////printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
         int filesize = read_filesize(ftcbi);
-        printf("    filesize = %d\n", filesize);
+        //printf("    filesize = %d\n", filesize);
         int num_updates = read_num_updates(ftcbi);
-        printf("    number of updates = %d\n", num_updates);
+        //printf("    number of updates = %d\n", num_updates);
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
         fclose(target);
