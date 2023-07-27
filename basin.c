@@ -661,6 +661,7 @@ int read_block_size(FILE *ftcbi) {
 
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
+        printf("reading update %d\n", i);
         int block_index = read_block_index(ftcbi);
         int block_size = read_block_size(ftcbi);
         printf("block size read as %d\n", block_size);
@@ -686,8 +687,9 @@ void stage_4(char *in_filename) {
     int num_records = read_num_records(ftcbi);
 
     for (int i = 0; i < num_records; i++) {
+
         char *pathname = read_pathname(ftcbi);
-        printf("pathname = %s\n", pathname);
+        printf("record = %s\n", pathname);
         mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
         if (chmod(pathname, modify_permissions) != 0) {
             perror("Error changing file permissions");
@@ -701,8 +703,8 @@ void stage_4(char *in_filename) {
                 exit(1);
             }
         }
-        printf("target = %p\n", target);
-        printf("Came here successfully\n");
+        //printf("target = %p\n", target);
+        //printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
         read_filesize(ftcbi);
