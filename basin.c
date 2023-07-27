@@ -41,6 +41,10 @@ void fwrite_little_endian_32(FILE *fout, u_int32_t number) {
     fwrite_little_endian(fout, number, 4);
 }
 
+void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
+    fwrite_little_endian(fout, number, 8);
+}
+
 void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
     for (int i = 0; i < byte_length; i++) {
         fputc((uint8_t)(number >> ((byte_length - 1 - i) * 8)), fout);
