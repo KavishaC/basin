@@ -719,6 +719,7 @@ void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
         printf("        reading update %d\n", i);
         int block_index = read_block_index(ftcbi);
+        printf("        block index read as %d\n", block_index);
         int block_size = read_block_size(ftcbi);
         printf("        block size read as %d\n", block_size);
 
