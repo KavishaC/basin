@@ -23,33 +23,55 @@
 
 #include "basin.h"
 
+void fwrite_little_endian(FILE *fout, u_int64_t number, int num_bytes) {
+    for (int i = 0; i < num_bytes; i++) {
+        fputc((uint8_t)(number >> (8 * i)), fout);   
+    }
+}
+
 void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
-    //number = (number << 8) | (number >> 8);
-    fwrite(&number, 2, 1, fout);
+    fwrite_little_endian(fout, number, 2);
 }
 
 void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
-    //number = ((number << 16) & 0x00FF0000) | (number & 0x0000FF00) | ((number >> 16) & 0x000000FF);
-    //number = number << 8;
-    fwrite(&number, 3, 1, fout);
+    fwrite_little_endian(fout, number, 3);
 }
 
-void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
-/*     uint64_t result = 0;
-
-    for (int i = 0; i < sizeof(uint64_t); i++) {
-        result |= ((number >> (i * 8)) & 0xFF) << ((sizeof(uint64_t) - 1 - i) * 8);
-    } */
-    fwrite(&number, 8, 1, fout);
+void fwrite_little_endian_32(FILE *fout, u_int32_t number) {
+    fwrite_little_endian(fout, number, 4);
 }
 
 void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
     uint64_t result = 0;
-
     for (int i = 0; i < byte_length; i++) {
-        result |= ((number >> (i * 8)) & 0xFF) << ((byte_length - 1 - i) * 8);
+        fputc((uint8_t)(number >> ((byte_length - 1 - i) * 8)), fout);
     }
-    fwrite(&number, byte_length, 1, fout);
+    //fwrite(&number, byte_length, 1, fout);
+}
+
+uint64_t fread_little_endian(FILE *fout, int num_bytes) {
+    u_int64_t number = 0;
+    for (int i = 0; i < num_bytes; i++) {
+        int c = fgetc(fout);
+        if (c == EOF) {
+            perror("EOF reached while reading little endian");
+            exit(1);
+        }
+        number |= ((uint8_t)c) << (8 * i);
+    }
+    return number;
+}
+
+uint16_t fread_little_endian_16(FILE *fout) {
+    return (uint16_t)fread_little_endian(fout, 2);
+}
+
+uint32_t fread_little_endian_24(FILE *fout) {
+    return (uint32_t)fread_little_endian(fout, 3);
+}
+
+uint32_t fread_little_endian_32(FILE *fout) {
+    return (uint32_t)fread_little_endian(fout, 4);
 }
 
 /* uint64_t fread_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
@@ -195,7 +217,7 @@ char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
         exit(1);
     };
 
-    fwrite(&pathname_length, 2, 1, file2);
+    fwrite_little_endian_16(file2, pathname_length);
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
     for (int i = 0; i < pathname_length; i++) {
@@ -237,7 +259,7 @@ int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
         perror("EOF reached while reading num_blocks");
         exit(1);
     }
-    fwrite(&num_blocks, 3, 1, ftbbi);
+    fwrite_little_endian_24(ftbbi, num_blocks);
     return (int)num_blocks;
 }
 
@@ -329,7 +351,8 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
 		exit(1);
 	}
     uint32_t filesize = s.st_size;
-    fwrite(&filesize, 4, 1, ftcbi);
+    //fwrite(&filesize, 4, 1, ftcbi);
+    fwrite_little_endian_32(ftcbi, filesize);
 }
 
 int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
@@ -374,7 +397,8 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
 
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
-    fwrite(&number, 3, 1, file);
+    //fwrite(&number, 3, 1, file);
+    fwrite_little_endian_24(file, number);
 }
 
 void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_blocks) {
@@ -389,8 +413,10 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
         int block_size = fread_next_256byte_block(readfile, block);
         //printf("\ni = %d: block size = %d\n", i, block_size);
         if (updates[i] == true) {
-            fwrite(&i, 3, 1, file);
-            fwrite(&block_size, 2, 1, file);
+            //fwrite(&i, 3, 1, file);
+            fwrite_little_endian_24(file, i);
+            //fwrite(&block_size, 2, 1, file);
+            fwrite_little_endian_24(block_size, i);
             for (int j = 0; j < block_size; j++) {
                 //printf("writing %dth char %c\n", j, block[j]);
                 fputc(block[j], file);
@@ -688,10 +714,12 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
     }
     //printf("writing block...\n");
     for (int i=0; i < block_size; i++) {
-        putchar(block[i]);        
+        //putchar(block[i]);    
+        fputc(block[i], target);    
     }
+    //fwrite(block, block_size, 1, target);
     //printf("\n");
-    fwrite(block, block_size, 1, target);
+
 }
 
 int read_num_updates(FILE *ftcbi) {
