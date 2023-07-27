@@ -334,8 +334,8 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
         for (int j = 0; j < 8; j++) {
             matches <<= 1;
             if (((i * 8) + j) < num_blocks) {
-                if (in_file != NULL) {
                     uint64_t hash_read = fread_hash(ftabi);
+                if (in_file != NULL) {
                     //printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
                     uint64_t hash_generated = generate_hash(in_file);
