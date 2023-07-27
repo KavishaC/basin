@@ -413,6 +413,15 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
     fwrite_little_endian_32(ftcbi, filesize);
 }
 
+int read_filesize_from_file(char *pathname) {
+    struct stat s;
+	if (stat(pathname, &s) != 0) {
+		perror(pathname);
+		exit(1);
+	}
+    return s.st_size;
+}
+
 int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     int num_updates = 0;
@@ -597,7 +606,6 @@ void stage_3(char *out_filename, char *in_filename) {
 
         char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
         int num_blocks = get_number_blocks_ftbbi(ftbbi); // exit if EOF found
-        
         print_mode_to_file(ftcbi, pathname);
         print_filesize_to_file(ftcbi, pathname);
             // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
@@ -608,6 +616,11 @@ void stage_3(char *out_filename, char *in_filename) {
             print_number_of_updates_to_file(ftcbi, num_updates);
         if (num_blocks != 0) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
+        }
+        int filesize = read_filesize_from_file(in_filename);
+        if ((num_blocks * 256) > filesize) {
+            perror("num blocks too high for filesize");
+            exit(1);
         }
         free(pathname);
     }
