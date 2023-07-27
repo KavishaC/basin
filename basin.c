@@ -770,7 +770,7 @@ void stage_4(char *in_filename) {
         ////printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
-        int filesize = read_filesize(ftcbi);
+        read_filesize(ftcbi);
         //printf("    filesize = %d\n", filesize);
         int num_updates = read_num_updates(ftcbi);
         //printf("    number of updates = %d\n", num_updates);
