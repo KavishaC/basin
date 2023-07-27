@@ -285,10 +285,9 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
 
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
-    uint64_t matches = 0;
+    //uint64_t matches = 0;
     int matches_length = num_tbbi_match_bytes(num_blocks);
     for (int i = 0; i < (matches_length * 8); i++) {
-        matches <<= 1;
         if (i < num_blocks) {
             uint64_t hash_read = fread_hash(ftabi);
             ////printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
@@ -298,7 +297,9 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
                 ////printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                 if (hash_read == hash_generated) {
                     ////printf("matches += 1\n");
-                    matches |= 1;
+                    fputc('1', ftbbi);
+                } else {
+                    fputc('0', ftbbi);
                 }
             }
         }
@@ -307,7 +308,7 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     if (in_file != NULL) {
         fclose(in_file);    
     }
-    fwrite_big_endian_64(ftbbi, matches, matches_length);
+    //fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
 }
 
