@@ -146,11 +146,11 @@ uint64_t fread_hash(FILE *ftabi) {
 }
 
 uint64_t generate_hash(FILE *fin) {
-    if (fin == NULL) {
-        return 0;
-    }
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
+    if (fin == NULL) {
+        return hash_block(block, 0);
+    }
     int block_size = fread_next_256byte_block(fin, block);
     uint64_t hash = hash_block(block, block_size);
     return hash;
