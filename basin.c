@@ -402,7 +402,7 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
     strmode(ftcbi, s.st_mode);
 }
 
-void print_filesize_to_file(FILE *ftcbi, char *pathname) {
+int print_filesize_to_file(FILE *ftcbi, char *pathname) {
     struct stat s;
 	if (stat(pathname, &s) != 0) {
 		perror(pathname);
@@ -411,6 +411,7 @@ void print_filesize_to_file(FILE *ftcbi, char *pathname) {
     uint32_t filesize = s.st_size;
     //fwrite(&filesize, 4, 1, ftcbi);
     fwrite_little_endian_32(ftcbi, filesize);
+    return (int)filesize;
 }
 
 int read_filesize_from_file(char *pathname) {
@@ -612,7 +613,7 @@ void stage_3(char *out_filename, char *in_filename) {
         char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
         int num_blocks = get_number_blocks_ftbbi(ftbbi); // exit if EOF found
         print_mode_to_file(ftcbi, pathname);
-        print_filesize_to_file(ftcbi, pathname);
+        int filesize = print_filesize_to_file(ftcbi, pathname);
             // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
             int updates[num_blocks + 1];
             updates[num_blocks] = -1;
@@ -622,7 +623,6 @@ void stage_3(char *out_filename, char *in_filename) {
         if (num_blocks != 0) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
         }
-        int filesize = read_filesize_from_file(in_filename);
 
         printf("num_blocks_indicated(%d) > num_blocks_read(%zu)\n", num_blocks, number_of_blocks_in_file(filesize));
 /*         if (num_blocks > number_of_blocks_in_file(filesize)) {
