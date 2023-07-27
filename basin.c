@@ -901,22 +901,28 @@ void stage_4(char *in_filename) {
     //printf("num records = %d\n", num_records);
 
     for (int i = 0; i < num_records; i++) {
-
         char *pathname = read_pathname(ftcbi);
-        //printf("record = %s\n", pathname);
-        mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
-        if (chmod(pathname, modify_permissions) != 0) {
-            perror("Error changing file permissions");
-            exit(1);
-        }
-        FILE *target = fopen(pathname, "r+");
-        if (target == NULL) {
+        FILE *target;
+        if (access(pathname, F_OK) == 0) {
+            mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
+            if (chmod(pathname, modify_permissions) != 0) {
+                perror("Error changing file permissions");
+                exit(1);
+            }
+            target = fopen(pathname, "r+");  
+            if (target == NULL) {
+                perror(pathname);
+                exit(1);
+            }
+        } else {
             target = fopen(pathname, "w");
             if (target == NULL) {
                 perror(pathname);
                 exit(1);
             }
         }
+        //printf("record = %s\n", pathname);
+
         ////printf("target = %p\n", target);
         ////printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
