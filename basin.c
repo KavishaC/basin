@@ -305,8 +305,8 @@ int write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
             }
             ////printf("matches array at i = %d:   0x%lx\n", i, matches);
         }
+        fclose(in_file);    
     }
-    fclose(in_file);    
     fwrite_big_endian_64(ftbbi, matches, matches_length);
     //fwrite(&matches, matches_length, 1, ftbbi);
     return 0;
