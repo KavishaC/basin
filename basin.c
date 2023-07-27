@@ -624,7 +624,7 @@ void stage_3(char *out_filename, char *in_filename) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
         }
 
-        printf("num_blocks_indicated(%d) > num_blocks_read(%zu)\n", num_blocks, number_of_blocks_in_file(filesize));
+        //printf("num_blocks_indicated(%d) > num_blocks_read(%zu)\n", num_blocks, number_of_blocks_in_file(filesize));
         if (num_blocks > number_of_blocks_in_file(filesize)) {
             perror("num blocks too high for filesize");
             exit(1);
