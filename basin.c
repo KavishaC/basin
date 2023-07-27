@@ -216,6 +216,7 @@ char *read_pathname(FILE *fin) {
         perror("reached EOF at pathlength");
         exit(1);
     };
+    printf("pathname_length = %u\n", pathname_length);
 
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
