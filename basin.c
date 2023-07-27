@@ -282,41 +282,46 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
 
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
-    //uint64_t matches = 0;
     int matches_length = num_tbbi_match_bytes(num_blocks);
-    for (int i = 0; i < (matches_length * 8); i++) {
-        if (i < num_blocks) {
-            if (in_file == NULL) {
-                printf("in_file = NULL printed 0\n");
-                fputc(0, ftbbi);
-            } else {
-                uint64_t hash_read = fread_hash(ftabi);
-                printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
-                //if (in_file != NULL) {
-                uint64_t hash_generated = generate_hash(in_file);
-                printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
-                if (hash_read == hash_generated) {
-                    ////printf("matches += 1\n");
-                    printf("hashes matched printed 1\n");
+
+    while (matches_length > 0) {
+        int l = matches_length;
+        if (matches_length > 8) {
+            l = 8;
+        }
+        matches_length -= 8;
+        uint64_t matches = 0;
+        for (int i = 0; i < (l * 8); i++) {
+            matches = matches << 1;
+            if (i < num_blocks) {
+                if (in_file == NULL) {
+                    printf("in_file = NULL printed 0\n");
                     fputc(0, ftbbi);
                 } else {
-                    printf("hashes didn't match printed 0\n");
-                    fputc(0, ftbbi);
+                    uint64_t hash_read = fread_hash(ftabi);
+                    printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
+
+                    uint64_t hash_generated = generate_hash(in_file);
+                    printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
+                    if (hash_read == hash_generated) {
+                        printf("hashes matched printed 1\n");
+                        matches++;
+                    } else {
+                        printf("hashes didn't match printed 0\n");
+                    }
+                //}
                 }
-            //}
+            } else {
+                printf("i=%d >= num_block=%d printed 0\n", i, num_blocks);
             }
-        } else {
-            printf("i=%d >= num_block=%d printed 0\n", i, num_blocks);
-            fputc(0, ftbbi);
         }
-        ////printf("matches array at i = %d:   0x%lx\n", i, matches);
+        fwrite_big_endian_64(ftbbi, matches, matches_length);
     }
+
     if (in_file != NULL) {
         fclose(in_file);    
     }
-    //fwrite_big_endian_64(ftbbi, matches, matches_length);
-    //fwrite(&matches, matches_length, 1, ftbbi);
 }
 
 void strmode(FILE *file, mode_t mode) {
