@@ -618,6 +618,7 @@ void stage_3(char *out_filename, char *in_filename) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
         }
         int filesize = read_filesize_from_file(in_filename);
+        printf("num_blocks(%d) * 256 > filesize(%d)\n", num_blocks, filesize);
         if ((num_blocks * 256) > filesize) {
             perror("num blocks too high for filesize");
             exit(1);
