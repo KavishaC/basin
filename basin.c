@@ -860,6 +860,17 @@ void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
         fread_next_block(ftcbi, block, block_size);
         update_block(target, block_index, block, block_size);
     }
+    long currentPosition = ftell(target);
+    if (currentPosition == -1) {
+        perror("Error getting current file position");
+        exit(1);
+    }
+
+    // Step 4: Truncate the file from the current position to delete the content
+    if (ftruncate(fileno(target), currentPosition) != 0) {
+        perror("Error truncating the file");
+        exit(1);
+    }
 }
 
 /// @brief Apply a TCBI file to the filesystem.
@@ -904,7 +915,7 @@ void stage_4(char *in_filename) {
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
         fclose(target);
-/*         
+/*      
         */
     }
     fclose(ftcbi);
