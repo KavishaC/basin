@@ -694,8 +694,8 @@ void stage_4(char *in_filename) {
                 exit(1);
             }
         }
-        mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         printf("Came here successfully\n");
+        mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
         read_filesize(ftcbi);
         int num_updates = read_num_updates(ftcbi);
