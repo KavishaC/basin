@@ -625,9 +625,12 @@ void stage_3(char *out_filename, char *in_filename) {
         int filesize = read_filesize_from_file(in_filename);
 
         printf("num_blocks_indicated(%d) > num_blocks_read(%zu)\n", num_blocks, number_of_blocks_in_file(filesize));
-/*         if (((num_blocks - 1) * BLOCK_SIZE) > filesize) {
+        if (num_blocks > number_of_blocks_in_file(filesize)) {
             perror("num blocks too high for filesize");
             exit(1);
+        }
+/*      
+   if (((num_blocks - 1) * BLOCK_SIZE) > filesize) {
         } */
         
 /*         if ((((num_blocks - 1) * BLOCK_SIZE) > filesize) || (((num_blocks+1) * BLOCK_SIZE) < filesize) ){
