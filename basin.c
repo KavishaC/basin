@@ -921,12 +921,25 @@ void stage_4(char *in_filename) {
         ////printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
-        read_filesize(ftcbi);
+        long filesize = read_filesize(ftcbi);
         //printf("    filesize = %d\n", filesize);
         int num_updates = read_num_updates(ftcbi);
         //printf("    number of updates = %d\n", num_updates);
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
+
+/*         long currentPosition = ftell(target);
+        if (currentPosition == -1) {
+            perror("Error getting current file position");
+            exit(1);
+        } */
+
+        // Step 4: Truncate the file from the current position to delete the content
+        if (ftruncate(fileno(target), filesize) != 0) {
+            perror("Error truncating the file");
+            exit(1);
+        } 
+
         fclose(target);
 /*      
         */
