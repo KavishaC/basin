@@ -336,15 +336,15 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
             if (((i * 8) + j) < num_blocks) {
                 if (in_file != NULL) {
                     uint64_t hash_read = fread_hash(ftabi);
-                    printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
+                    //printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
                     uint64_t hash_generated = generate_hash(in_file);
-                    printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
+                    //printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                     if (hash_read == hash_generated) {
-                        printf("hashes matched printed 1\n");
+                        //printf("hashes matched printed 1\n");
                         matches++;
                     } else {
-                        printf("hashes didn't match printed 0\n");
+                        //printf("hashes didn't match printed 0\n");
                     }
                 }
             }
