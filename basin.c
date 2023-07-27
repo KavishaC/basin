@@ -685,6 +685,7 @@ void stage_4(char *in_filename) {
     int num_records = read_num_records(ftcbi);
 
     for (int i = 0; i < num_records; i++) {
+        printf("Came here successfully\n");
         char *pathname = read_pathname(ftcbi);
         FILE *target = fopen(pathname, "r+");
         if (target == NULL) {
@@ -694,7 +695,6 @@ void stage_4(char *in_filename) {
                 exit(1);
             }
         }
-        printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
         read_filesize(ftcbi);
