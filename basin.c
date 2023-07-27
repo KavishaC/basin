@@ -687,7 +687,7 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
     }
     printf("writing block...\n");
     for (int i=0; i < block_size; i++) {
-        putchar(block);        
+        putchar(block[i]);        
     }
     printf("\n");
     fwrite(block, block_size, 1, target);
