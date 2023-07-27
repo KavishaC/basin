@@ -285,6 +285,10 @@ int get_number_blocks_ftbbi(FILE *ftbbi) {
 
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
+    if (in_file == NULL) {
+        perror(pathname);
+        exit(1);
+    }
     uint64_t matches = 0;
     int matches_length = num_tbbi_match_bytes(num_blocks);
     for (int i = 0; i < (matches_length * 8); i++) {
