@@ -696,10 +696,10 @@ void stage_4(char *in_filename) {
         }
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         printf("Came here successfully\n");
-        update_mode(pathname, new_mode);
+/*         update_mode(pathname, new_mode);
         read_filesize(ftcbi);
         int num_updates = read_num_updates(ftcbi);
-        read_and_execute_updates(ftcbi, target, num_updates);
+        read_and_execute_updates(ftcbi, target, num_updates); */
         free(pathname);
         fclose(target);
     }
