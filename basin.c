@@ -709,6 +709,7 @@ void stage_4(char *in_filename) {
         update_mode(pathname, new_mode);
         read_filesize(ftcbi);
         int num_updates = read_num_updates(ftcbi);
+        printf("number of updates = %d\n", num_updates);
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
         fclose(target);
