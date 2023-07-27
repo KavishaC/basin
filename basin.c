@@ -137,11 +137,11 @@ void fwrite_hash(FILE *fout, FILE *fin) {
 }
 
 uint64_t fread_hash(FILE *ftabi) {
-    uint64_t hash;
-    if (fread(&hash, 8, 1, ftabi) == 0) {
+    uint64_t hash = fread_little_endian_64(ftabi);
+/*     if (fread(&hash, 8, 1, ftabi) == 0) {
         perror("EOF reached while reading hash");
         exit(1);
-    }
+    } */
     return hash;
 }
 
@@ -217,11 +217,12 @@ int read_num_records(FILE *fin) {
 
 char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
     ////printf("pathname_lenght %u\n", pathname_length);
-    u_int16_t pathname_length;
-    if (fread(&pathname_length, 2, 1, file1) == 0) {
+    u_int16_t pathname_length = fread_little_endian_16(file1);
+/*     if (fread(&pathname_length, 2, 1, file1) == 0) {
         perror("reached EOF at pathlength");
         exit(1);
-    };
+    }; */
+
 
     fwrite_little_endian_16(file2, pathname_length);
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
@@ -239,11 +240,13 @@ char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
 }
 
 char *read_pathname(FILE *fin) {
-    u_int16_t pathname_length;
-    if (fread(&pathname_length, 2, 1, fin) == 0) {
+    u_int16_t pathname_length = fread_little_endian_16(fin);
+/*     if (fread(&pathname_length, 2, 1, fin) == 0) {
         perror("reached EOF at pathlength");
         exit(1);
-    };
+    }; */
+
+
     printf("pathname_length = %u\n", pathname_length);
 
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
@@ -260,21 +263,22 @@ char *read_pathname(FILE *fin) {
 }
 
 int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
-    uint32_t num_blocks;
-    if (fread(&num_blocks, 3, 1, ftabi) == 0) {
+    uint32_t num_blocks = fread_little_endian_24(ftabi);
+/*     if (fread(&num_blocks, 3, 1, ftabi) == 0) {
         perror("EOF reached while reading num_blocks");
         exit(1);
-    }
+    } */
     fwrite_little_endian_24(ftbbi, num_blocks);
     return (int)num_blocks;
 }
 
 int get_number_blocks_ftbbi(FILE *ftbbi) {
-    uint32_t num_blocks;
-    if (fread(&num_blocks, 3, 1, ftbbi) == 0) {
+    uint32_t num_blocks = fread_little_endian_24(ftbbi);
+
+/*     if (fread(&num_blocks, 3, 1, ftbbi) == 0) {
         perror("EOF reached while reading num_blocks");
         exit(1);
-    }
+    } */
     //printf("number of blocks read as %u\n", num_blocks);
     return (int)num_blocks;
 }
@@ -366,8 +370,7 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     int num_updates = 0;
     u_int64_t matches = 0;
     for (int i = 0; i < matches_length; i++) {
-        uint8_t b;
-        fread(&b, 1, 1, file);
+        uint8_t b = fgetc(file);
         matches |= ((uint64_t)b) << (8 * i);
     }
     for (int i = 0; i < num_blocks; i++) {
@@ -704,11 +707,8 @@ void update_mode(char *filename, mode_t new_mode) {
 }
 
 int read_filesize(FILE *ftcbi) {
-    uint32_t filesize;
-    if (fread(&filesize, FILE_SIZE_SIZE, 1, ftcbi) < 1) {
-        perror("Found EOF while reading filesize");
-        exit(1);
-    };
+    uint32_t filesize = fread_little_endian_32(ftcbi);
+
     //printf("    uint32_t filesize = %d\n", filesize);
     return (int)filesize;
 }
@@ -729,11 +729,12 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
 }
 
 int read_num_updates(FILE *ftcbi) {
-    uint32_t num_updates;
-    if (fread(&num_updates, 3, 1, ftcbi) < 1) {
+    uint32_t num_updates = fread_little_endian_24(ftcbi);
+/*     if (fread(&num_updates, 3, 1, ftcbi) < 1) {
         perror("Found EOF while reading num_updates");
         exit(1);
     };
+ */
     return (int)num_updates;
 }
 
@@ -747,11 +748,11 @@ int read_block_index(FILE *ftcbi) {
 }
 
 int read_block_size(FILE *ftcbi) {
-    u_int16_t block_size;
-    if (fread(&block_size, 2, 1, ftcbi) < 1) {
+    u_int16_t block_size = fread_little_endian_16(ftcbi);
+/*     if (fread(&block_size, 2, 1, ftcbi) < 1) {
         perror("Found EOF while reading block size");
         exit(1);
-    };
+    }; */
     return (int)block_size;
 }
 
