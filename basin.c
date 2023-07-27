@@ -435,14 +435,19 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
         uint8_t b = c;
         for (int j = 0; j < 8; j++) {
             int k = (i * 8) + j;
+            bool match = ((b >> (7 - j)) & 1);
             if (k < num_blocks) {
-                bool match = ((b >> (7 - j)) & 1);
                 if (match) {
                     updates[k] = false;
                 } else {
                     updates[k] = true;
                     num_updates++;
                 } 
+            } else {
+                if (match) {
+                    perror("incorrect padding");
+                    exit(1);
+                }
             }
         }
     }
