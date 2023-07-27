@@ -137,7 +137,7 @@ void write_magic(FILE *fout, char magic[]) {
     }
 }
 
-void read_magic(FILE *file, char magic[]) {
+void verify_magic(FILE *file, char magic[]) {
     for (int i = 0; i < 4; i++) {
         if (fgetc(file) != magic[i]) {
             perror("magic wrong");
@@ -154,6 +154,15 @@ int copy_number_of_records_from_file1_to_file2(FILE *file1, FILE *file2) {
     }
     u_int8_t num_of_records = read;
     fputc(num_of_records, file2);
+    return read;
+}
+
+int read_num_records(FILE *fin) {
+    int read = fgetc(fin);
+    if (read == EOF) {
+        perror("EOF reached while reading number of records");
+        exit(1);
+    }
     return read;
 }
 
@@ -175,6 +184,26 @@ char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
             exit(1);
         }
         fputc((char)read, file2);
+        pathname[i] = (char)read;
+    }
+    return pathname;
+}
+
+char *read_pathname(FILE *fin) {
+    u_int16_t pathname_length;
+    if (fread(&pathname_length, 2, 1, fin) == 0) {
+        perror("reached EOF at pathlength");
+        exit(1);
+    };
+
+    char *pathname = malloc(sizeof(char)*(pathname_length + 1));
+    pathname[pathname_length] = '\0';
+    for (int i = 0; i < pathname_length; i++) {
+        int read = fgetc(fin);
+        if (read == EOF) {
+            perror("reached EOF at pathname");
+            exit(1);
+        }
         pathname[i] = (char)read;
     }
     return pathname;
@@ -396,7 +425,7 @@ void stage_2(char *out_filename, char *in_filename) {
         perror(out_filename);
         exit(1);
     }
-    read_magic(ftabi, magic_number_tabi);
+    verify_magic(ftabi, magic_number_tabi);
     write_magic(ftbbi, magic_number_tbbi);
 
     int num_of_records = copy_number_of_records_from_file1_to_file2(ftabi, ftbbi); // exit if reached EOF
@@ -434,7 +463,7 @@ void stage_3(char *out_filename, char *in_filename) {
         perror(out_filename);
         exit(1);
     }
-    read_magic(ftbbi, magic_number_tbbi);
+    verify_magic(ftbbi, magic_number_tbbi);
     write_magic(ftcbi, magic_number_tcbi);
 
     int num_of_records = copy_number_of_records_from_file1_to_file2(ftbbi, ftcbi); // exit if reached EOF
@@ -467,9 +496,190 @@ void stage_3(char *out_filename, char *in_filename) {
 
 }
 
+/* mode_t read_mode_from_stat(char *filename) {
+
+    struct stat fileStat;
+    if (stat(filename, &fileStat) != 0) {
+        perror("file stat could not be opened");
+        exit(1);
+    }
+
+    mode_t mode = fileStat.st_mode;
+
+    if (S_ISREG(mode)) {
+        printf("Regular file\n");
+    } else if (S_ISDIR(mode)) {
+        printf("Directory\n");
+    } else {
+        perror("file not regular file or directory");
+        exit(1);
+    }
+} */
+
+mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
+    mode_t new_mode = 0;
+
+    int filetype;
+    if ((filetype = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading filetype from tcbi");
+        exit(1);
+    };
+    if (filetype == '-') {
+        new_mode |= S_IFREG;
+    } else if (filetype == 'd') {
+        new_mode |= S_IFDIR;
+    } else {
+        perror("filetype not -/d");
+        exit(1);
+    }
+
+    int userperm;
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'r') {
+        new_mode |= S_IRUSR;
+    } else if (userperm == 'w') {
+        new_mode |= S_IWUSR;
+    } else if (userperm == 'x') {
+        new_mode |= S_IXUSR;
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not r/w/x/-");
+        exit(1);
+    }
+
+    int groupperm;
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'r') {
+        new_mode |= S_IRGRP;
+    } else if (groupperm == 'w') {
+        new_mode |= S_IWGRP;
+    } else if (groupperm == 'x') {
+        new_mode |= S_IXGRP;
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not r/w/x/-");
+        exit(1);
+    }
+
+    int otherperm;
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'r') {
+        new_mode |= S_IROTH;
+    } else if (otherperm == 'w') {
+        new_mode |= S_IWOTH;
+    } else if (otherperm == 'x') {
+        new_mode |= S_IXOTH;
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not r/w/x/-");
+        exit(1);
+    }
+    return new_mode;
+}
+
+void update_mode(char *filename, mode_t new_mode) {
+    if (chmod(filename, new_mode) != 0) {
+        perror("Error changing file permissions");
+        exit(1);
+    }
+}
+
+int read_filesize(FILE *ftcbi) {
+    int filesize;
+    if (fread(&filesize, FILE_SIZE_SIZE, 1, ftcbi) < 1) {
+        perror("Found EOF while reading filesize");
+        exit(1);
+    };
+    return filesize;
+}
+
+void update_block(FILE *target, int block_index, char block[], int block_size) {
+    if (fseek(target, (block_index * BLOCK_SIZE), SEEK_SET) != 0) {
+        perror("Error while seeking file");
+        exit(1);
+    }
+    fwrite(block, block_size, 1, target);
+}
+
+int read_num_updates(FILE *ftcbi) {
+    int num_updates;
+    if (fread(&num_updates, 3, 1, ftcbi) < 1) {
+        perror("Found EOF while reading num_updates");
+        exit(1);
+    };
+    return num_updates;
+}
+
+int read_block_index(FILE *ftcbi) {
+    int index;
+    if (fread(&index, BLOCK_INDEX_SIZE, 1, ftcbi) < 1) {
+        perror("Found EOF while reading block index");
+        exit(1);
+    };
+    return index;
+}
+
+int read_block_size(FILE *ftcbi) {
+    int block_size;
+    if (fread(&block_size, 2, 1, ftcbi) < 1) {
+        perror("Found EOF while reading block size");
+        exit(1);
+    };
+    return block_size;
+}
+
+void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
+    for (int i = 0; i < num_updates; i++) {
+        int block_index = read_block_index(ftcbi);
+        int block_size = read_block_size(ftcbi);
+
+        char block[BLOCK_SIZE];
+        memset(block, '\0', sizeof(block));
+        int block_size = fread_next_256byte_block(ftcbi, block);
+        update_block(target, block_index, block, block_size);
+    }
+}
 
 /// @brief Apply a TCBI file to the filesystem.
 /// @param in_filename A path to where the existing TCBI file is located.
 void stage_4(char *in_filename) {
-    // TODO: implement this.
+    char magic_number_tcbi[] = {0x54, 0x43, 0x42, 0x49};
+
+    FILE *ftcbi = fopen(in_filename, "r");
+    if (ftcbi == NULL) {
+        perror(in_filename);
+        exit(1);
+    }
+    verify_magic(ftcbi, magic_number_tcbi);
+    int num_records = read_num_records(ftcbi);
+
+    for (int i = 0; i < num_records; i++) {
+        char *pathname = read_pathname(ftcbi);
+
+        FILE *target = fopen(pathname, "r+");
+        if (target == NULL) {
+            FILE *target = fopen(pathname, "w");
+            if (target == NULL) {
+                perror(pathname);
+                exit(1);
+            }
+        }
+        mode_t new_mode = read_mode(ftcbi);
+        update_mode(pathname, new_mode);
+        read_filesize(ftcbi);
+        int num_updates = read_num_updates(ftcbi);
+        read_and_execute_updates(ftcbi, target, num_updates);
+        free(pathname);
+        fclose(target);
+    }
+    fclose(ftcbi);
 }
