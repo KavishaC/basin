@@ -81,6 +81,10 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
 
 int fread_next_block(FILE *fin, char block[], int block_size) {
     int result = 0;
+    if (block_size > BLOCK_SIZE) {
+        perror("block_size greater than 256");
+        exit(1);
+    }
     for (int j = 0; j < block_size; j++) {
         //printf("reading %dth char\n", j);
         int c;
