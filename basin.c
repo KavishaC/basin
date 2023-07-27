@@ -944,7 +944,12 @@ void stage_4(char *in_filename) {
         if (ftruncate(fileno(target), filesize) != 0) {
             perror("Error truncating the file");
             exit(1);
-        } 
+        }
+
+        if (fgetc(ftcbi) != EOF) {
+            perror("EOF not reached after reading given number of records");
+            exit(1);
+        }
 
         fclose(target);
 /*      
