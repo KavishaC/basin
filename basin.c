@@ -447,21 +447,9 @@ void get_filenames_of_entries(DIR *dir, char *sub_entries_filenames[], size_t nu
     if (num_sub_entries != num_sub_entries_expected) {
         perror("did not read sub_entries ");
     }
-    
+}
 
-    struct stat fileStat;
-        // Check if the entry is a regular file
-        if (S_ISREG(fileStat.st_mode)) {
-            printf("%s is a regular file.\n", entry->d_name);
-
-        }
-
-        // Check if the entry is a directory
-        if (S_ISDIR(fileStat.st_mode))
-            printf("%s is a directory.\n", entry->d_name);
-    
-    }
- */
+ 
 
 void write_record(FILE *fout, char *in_filename) {
     FILE *fin = fopen(in_filename, "r");
