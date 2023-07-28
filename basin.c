@@ -2,8 +2,11 @@
 // COMP1521 23T2 --- Assignment 2: `basin', a simple file synchroniser
 // <https://cgi.cse.unsw.edu.au/~cs1521/23T2/assignments/ass2/index.html>
 //
-// Written by YOUR-NAME-HERE (z5555555) on INSERT-DATE-HERE.
-// INSERT-DESCRIPTION-OF-PROGAM-HERE
+// Written by KAVISHA CHANDRARATNE (z5473625) on 29/07/2023.
+//
+// basin is a command-line utility used for efficient file synchronization and 
+// data transfer. It minimizes data transfer by copying only the differences 
+// between the source and destination files.
 //
 // 2023-07-16   v1.1    Team COMP1521 <cs1521 at cse.unsw.edu.au>
 
@@ -25,34 +28,55 @@
 
 #include "basin.h"
 
+/* 
+ * Write a 64-bit number in little-endian byte order to a file with a specified number of bytes.
+ */
 void fwrite_little_endian(FILE *fout, u_int64_t number, int num_bytes) {
     for (int i = 0; i < num_bytes; i++) {
         fputc((uint8_t)(number >> (8 * i)), fout);   
     }
 }
 
+/* 
+ * Convenience function to write a 16-bit number in little-endian byte order to a file.
+ */
 void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
     fwrite_little_endian(fout, number, 2);
 }
 
+/* 
+ * Convenience function to write a 24-bit number in little-endian byte order to a file.
+ */
 void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
     fwrite_little_endian(fout, number, 3);
 }
 
+/* 
+ * Convenience function to write a 32-bit number in little-endian byte order to a file.
+ */
 void fwrite_little_endian_32(FILE *fout, u_int32_t number) {
     fwrite_little_endian(fout, number, 4);
 }
 
+/* 
+ * Convenience function to write a 64-bit number in little-endian byte order to a file.
+ */
 void fwrite_little_endian_64(FILE *fout, u_int64_t number) {
     fwrite_little_endian(fout, number, 8);
 }
 
+/* 
+ * Write a 64-bit number in big-endian byte order to a file with a specified byte length.
+ */
 void fwrite_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
     for (int i = 0; i < byte_length; i++) {
         fputc((uint8_t)(number >> ((byte_length - 1 - i) * 8)), fout);
     }
 }
 
+/* 
+ * Read a little-endian 64-bit number from the file with the specified number of bytes.
+ */
 uint64_t fread_little_endian(FILE *fout, int num_bytes) {
     u_int64_t number = 0;
     for (int i = 0; i < num_bytes; i++) {
@@ -66,22 +90,37 @@ uint64_t fread_little_endian(FILE *fout, int num_bytes) {
     return number;
 }
 
+/* 
+ * Convenience function to read a little-endian 16-bit number from the file.
+ */
 uint16_t fread_little_endian_16(FILE *fout) {
     return (uint16_t)fread_little_endian(fout, 2);
 }
 
+/* 
+ * Convenience function to read a little-endian 24-bit number from the file.
+ */
 uint32_t fread_little_endian_24(FILE *fout) {
     return (uint32_t)fread_little_endian(fout, 3);
 }
 
+/* 
+ * Convenience function to read a little-endian 32-bit number from the file.
+ */
 uint32_t fread_little_endian_32(FILE *fout) {
     return (uint32_t)fread_little_endian(fout, 4);
 }
 
+/* 
+ * Convenience function to read a little-endian 64-bit number from the file.
+ */
 uint64_t fread_little_endian_64(FILE *fout) {
     return (uint64_t)fread_little_endian(fout, 8);
 }
 
+/* 
+ * Read the next 256-byte block from the file into the provided buffer.
+ */
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
@@ -95,6 +134,9 @@ int fread_next_256byte_block(FILE *fin, char block[]) {
     return result;
 }
 
+/* 
+ * Read the next block from the file into the provided buffer with the specified size.
+ */
 int fread_next_block(FILE *fin, char block[], int block_size) {
     int result = 0;
     if (block_size > BLOCK_SIZE) {
@@ -112,6 +154,9 @@ int fread_next_block(FILE *fin, char block[], int block_size) {
     return result;
 }
 
+/* 
+ * Write the hash of the next 256-byte block from the file to the output file.
+ */
 void fwrite_hash(FILE *fout, FILE *fin) {
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
@@ -120,11 +165,17 @@ void fwrite_hash(FILE *fout, FILE *fin) {
     fwrite_little_endian_64(fout, hash);
 }
 
+/* 
+ * Read the hash value from the file and return it as a 64-bit unsigned integer.
+ */
 uint64_t fread_hash(FILE *ftabi) {
     uint64_t hash = fread_little_endian_64(ftabi);
     return hash;
 }
 
+/* 
+ * Generate the hash value of the next 256-byte block from the file and return it as a 64-bit unsigned integer.
+ */
 uint64_t generate_hash(FILE *fin) {
     char block[BLOCK_SIZE];
     memset(block, '\0', sizeof(block));
@@ -133,6 +184,9 @@ uint64_t generate_hash(FILE *fin) {
     return hash;
 }
 
+/* 
+ * Write the record directory for a file to the output file.
+ */
 int fwrite_record_directory(FILE *fout, char *in_filename) {
     struct stat s;
     if (stat(in_filename, &s) != 0) {
@@ -152,6 +206,9 @@ int fwrite_record_directory(FILE *fout, char *in_filename) {
     return 0;
 }
 
+/* 
+ * Write the record for a file, including its hash values, to the output file.
+ */
 int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     struct stat s;
     if (stat(in_filename, &s) != 0) {
@@ -174,12 +231,18 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     return 0;
 }
 
+/* 
+ * Write the magic number to the output file.
+ */
 void write_magic(FILE *fout, char magic[]) {
     for (int i = 0; i < 4; i++) {
         fputc(magic[i], fout);
     }
 }
 
+/* 
+ * Verify the magic number in the file.
+ */
 void verify_magic(FILE *file, char magic[]) {
     for (int i = 0; i < 4; i++) {
         if (fgetc(file) != magic[i]) {
@@ -189,6 +252,9 @@ void verify_magic(FILE *file, char magic[]) {
     }
 } 
 
+/* 
+ * Copy the number of records from one file to another and return the value.
+ */
 int copy_number_of_records_from_file1_to_file2(FILE *file1, FILE *file2) {
     int read = fgetc(file1);
     if (read == EOF) {
@@ -200,6 +266,9 @@ int copy_number_of_records_from_file1_to_file2(FILE *file1, FILE *file2) {
     return read;
 }
 
+/* 
+ * Read the number of records from the file.
+ */
 int read_num_records(FILE *fin) {
     int read = fgetc(fin);
     if (read == EOF) {
@@ -208,7 +277,10 @@ int read_num_records(FILE *fin) {
     }
     return read;
 }
+/* 
 
+ * Copy the pathname and length from one file to another and return the pathname as a string.
+ */
 char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
     u_int16_t pathname_length = fread_little_endian_16(file1);
 
@@ -227,6 +299,9 @@ char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
     return pathname;
 }
 
+/* 
+ * Read the pathname from the file and return it as a string.
+ */
 char *read_pathname(FILE *fin) {
     u_int16_t pathname_length = fread_little_endian_16(fin);
 
@@ -243,18 +318,27 @@ char *read_pathname(FILE *fin) {
     return pathname;
 }
 
+/* 
+ * Copy the number of blocks from one file to another and return the value.
+ */
 int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
     uint32_t num_blocks = fread_little_endian_24(ftabi);
     fwrite_little_endian_24(ftbbi, num_blocks);
     return (int)num_blocks;
 }
 
+/* 
+ * Get the number of blocks from the TBBI file.
+ */
 int get_number_blocks_ftbbi(FILE *ftbbi) {
     uint32_t num_blocks = fread_little_endian_24(ftbbi);
 
     return (int)num_blocks;
 }
 
+/* 
+ * Write the matches (hash comparison result) to the TBBI file.
+ */
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
     int matches_length = num_tbbi_match_bytes(num_blocks);
@@ -283,6 +367,9 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     }
 }
 
+/* 
+ * Convert file mode to a string representation and write to the output file.
+ */
 void strmode(FILE *file, mode_t mode) {
   const char chars[] = "rwxrwxrwx";
   for (size_t i = 0; i < 9; i++) {
@@ -290,6 +377,9 @@ void strmode(FILE *file, mode_t mode) {
   }
 }
 
+/* 
+ * Print the file mode to the output file for a given pathname.
+ */
 void print_mode_to_file(FILE *ftcbi, char *pathname) {
     struct stat s;
 	if (stat(pathname, &s) != 0) {
@@ -304,6 +394,9 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
     strmode(ftcbi, s.st_mode);
 }
 
+/*
+* Prints the filesize of a file to a given TCBI file.
+*/
 int print_filesize_to_file(FILE *ftcbi, char *pathname) {
     struct stat s;
 	if (stat(pathname, &s) != 0) {
@@ -315,6 +408,9 @@ int print_filesize_to_file(FILE *ftcbi, char *pathname) {
     return (int)filesize;
 }
 
+/*
+* Reads the filesize from a given file.
+*/
 int read_filesize_from_file(char *pathname) {
     struct stat s;
 	if (stat(pathname, &s) != 0) {
@@ -324,6 +420,9 @@ int read_filesize_from_file(char *pathname) {
     return s.st_size;
 }
 
+/*
+* Reads matches from a file and retrieves updates.
+*/
 int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     int matches_length = num_tbbi_match_bytes(num_blocks);
     int num_updates = 0;
@@ -356,11 +455,17 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     return num_updates;
 }
 
+/*
+* Prints the number of updates to a given TCBI file.
+*/
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
     fwrite_little_endian_24(file, number);
 }
 
+/*
+* Writes updates to a given TCBI file based on input data.
+*/
 void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_blocks) {
     FILE *readfile = fopen(pathname, "r");
     if (readfile == NULL) {
@@ -381,6 +486,9 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
     }
 }
 
+/*
+* Gets the number of sub-entries (files and directories) in a directory.
+*/
 size_t get_num_sub_entries(DIR *dir) {
     size_t num_sub_entries = 0;
     struct dirent *entry;
@@ -411,6 +519,9 @@ size_t get_num_sub_entries(DIR *dir) {
     return num_sub_entries;
 }
 
+/*
+* Retrieves filenames of sub-entries in a directory.
+*/
 void get_filenames_of_entries(DIR *dir, char *sub_entries_filenames[], size_t num_sub_entries_expected) {
     size_t num_sub_entries = 0;
     struct dirent *entry;
@@ -443,6 +554,9 @@ void get_filenames_of_entries(DIR *dir, char *sub_entries_filenames[], size_t nu
     }
 }
 
+/*
+* Writes a record to the specified file.
+*/
 void write_record(FILE *fout, char *in_filename) {
     FILE *fin = fopen(in_filename, "r");
     if (fin == NULL) {
@@ -453,7 +567,9 @@ void write_record(FILE *fout, char *in_filename) {
     fclose(fin);
 }
 
-// iterate through all filenames and write each record
+/*
+* Writes records for an array of filenames to the specified file.
+*/
 void write_records(FILE *fout, char *in_filenames[], size_t num_in_filenames) {
     for (int i = 0; i < num_in_filenames; i++) {
         char *in_filename = in_filenames[i];
@@ -461,6 +577,9 @@ void write_records(FILE *fout, char *in_filenames[], size_t num_in_filenames) {
     }
 }
 
+/*
+* Writes records for sub-entries (files and directories) in a directory recursively.
+*/
 size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[]) {
     size_t num_sub_entries = 0;
     struct dirent *entry;
@@ -501,6 +620,9 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
     return num_sub_entries;
 }
 
+/*
+* Checks if a given pathname is within a specified directory.
+*/
 int isPathInDirectory(const char* directory, const char* pathname) {
     // Convert the directory and pathname to absolute paths
     char absoluteDirectory[PATH_MAX];
@@ -665,6 +787,9 @@ void stage_3(char *out_filename, char *in_filename) {
 
 }
 
+/*
+* Reads the mode from a TCBI file and returns the new mode.
+*/
 mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     mode_t new_mode = 0;
 
@@ -752,7 +877,6 @@ mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
         exit(1);
     }
 
-
     int otherperm;
     if ((otherperm = fgetc(ftcbi)) == EOF) {
         perror("Found EOF while reading otherperm from tcbi");
@@ -790,6 +914,9 @@ mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     return new_mode;
 }
 
+/*
+* Updates the mode of a file with the specified new_mode.
+*/
 void update_mode(char *filename, mode_t new_mode) {
     if (chmod(filename, new_mode) != 0) {
         perror("Error changing file permissions");
@@ -797,11 +924,17 @@ void update_mode(char *filename, mode_t new_mode) {
     }
 }
 
+/*
+* Reads the filesize from a TCBI file and returns it.
+*/
 int read_filesize(FILE *ftcbi) {
     uint32_t filesize = fread_little_endian_32(ftcbi);
     return (int)filesize;
 }
 
+/*
+* Updates a block in the target file at the given block_index.
+*/
 void update_block(FILE *target, int block_index, char block[], int block_size) {
     if (fseek(target, (block_index * BLOCK_SIZE), SEEK_SET) != 0) {
         perror("Error while seeking file");
@@ -825,21 +958,33 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
     }
 }
 
+/*
+* Reads the number of updates from a TCBI file and returns it.
+*/
 int read_num_updates(FILE *ftcbi) {
     uint32_t num_updates = fread_little_endian_24(ftcbi);
     return (int)num_updates;
 }
 
+/*
+* Reads the block index from a TCBI file and returns it.
+*/
 int read_block_index(FILE *ftcbi) {
     uint32_t index = fread_little_endian_24(ftcbi);
     return (int)index;
 }
 
+/*
+* Reads the block size from a TCBI file and returns it.
+*/
 int read_block_size(FILE *ftcbi) {
     u_int16_t block_size = fread_little_endian_16(ftcbi);
     return (int)block_size;
 }
 
+/*
+* Reads and executes updates from a TCBI file to the target file.
+*/
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
         int block_index = read_block_index(ftcbi);
