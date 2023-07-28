@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <limits.h>
 
 #include "basin.h"
 
@@ -679,6 +681,34 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
     return num_sub_entries;
 }
 
+int isPathInDirectory(const char* directory, const char* pathname) {
+    // Convert the directory and pathname to absolute paths
+    char absoluteDirectory[PATH_MAX];
+    char absolutePathname[PATH_MAX];
+
+    if (realpath(directory, absoluteDirectory) == NULL) {
+        perror("realpath");
+        return 0;
+    }
+
+    if (realpath(pathname, absolutePathname) == NULL) {
+        perror("realpath");
+        return 0;
+    }
+
+    size_t directoryLen = strlen(absoluteDirectory);
+
+    // Use strstr to check if pathname starts with the directory
+    if (strstr(absolutePathname, absoluteDirectory) == absolutePathname) {
+        // Make sure the next character after the directory is '/' or '\0'
+        if (absolutePathname[directoryLen] == '/' || absolutePathname[directoryLen] == '\0') {
+            return 1; // Pathname is within the directory
+        }
+    }
+
+    return 0; // Pathname is not within the directory
+}
+
 /// @brief Create a TABI file from an array of filenames.
 /// @param out_filename A path to where the new TABI file should be created.
 /// @param in_filenames An array of strings containing, in order, the files
@@ -689,6 +719,8 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
 void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) {
     char magic_number_tabi[] = {0x54, 0x41, 0x42, 0x49};
 
+
+    // check if 
     FILE *fout = fopen(out_filename, "w");
     if (fout == NULL) {
         perror(out_filename);
@@ -708,6 +740,14 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
         // move file pointer of fout to position 4 to overwrite the filesize 
         fputc((u_int8_t)num_in_filenames, fout);
     } else {
+        for (int i = 0; i < num_in_filenames; i++) {
+            if (!isPathInDirectory(".", in_filenames[i])) {
+                perror("path not in directory");
+                exit(1);
+            }
+
+        }
+
         // write records of input filenames
         write_records(fout, in_filenames, num_in_filenames);
     }
