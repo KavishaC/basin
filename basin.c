@@ -82,30 +82,16 @@ uint64_t fread_little_endian_64(FILE *fout) {
     return (uint64_t)fread_little_endian(fout, 8);
 }
 
-/* uint64_t fread_big_endian_64(FILE *fout, u_int64_t number, int byte_length) {
-    uint64_t result = 0;
-
-    for (int i = 0; i < byte_length; i++) {
-        result |= ((number >> (i * 8)) & 0xFF) << ((byte_length - 1 - i) * 8);
-    }
-    fwrite(&number, byte_length, 1, fout);
-
-} */
-
 int fread_next_256byte_block(FILE *fin, char block[]) {
     int result = 0;
     for (int j = 0; j < 256; j++) {
-        ////printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            ////printf("char is EOF\n", j);
             return result;
         }
-        ////printf("assigning block[%d] = %c\n", j, c);
         result++;
         block[j] = c;
     }
-    ////printf("returning result = %d\n", result);
     return result;
 }
 
@@ -116,17 +102,13 @@ int fread_next_block(FILE *fin, char block[], int block_size) {
         exit(1);
     }
     for (int j = 0; j < block_size; j++) {
-        //printf("reading %dth char\n", j);
         int c;
         if ((c = fgetc(fin)) == EOF ) {
-            //printf("char is EOF\n", j);
             return result;
         }
-        //printf("assigning block[%d] = %c\n", j, c);
         result++;
         block[j] = c;
     }
-    //printf("returning result = %d\n", result);
     return result;
 }
 
@@ -140,10 +122,6 @@ void fwrite_hash(FILE *fout, FILE *fin) {
 
 uint64_t fread_hash(FILE *ftabi) {
     uint64_t hash = fread_little_endian_64(ftabi);
-/*     if (fread(&hash, 8, 1, ftabi) == 0) {
-        perror("EOF reached while reading hash");
-        exit(1);
-    } */
     return hash;
 }
 
@@ -163,7 +141,6 @@ int fwrite_record_directory(FILE *fout, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    ////printf("pathname_lenght %u\n", pathname_length);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
@@ -183,7 +160,6 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    ////printf("pathname_lenght %u\n", pathname_length);
     fwrite_little_endian_16(fout, pathname_length);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
@@ -193,7 +169,6 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     fwrite_little_endian_24(fout, num_of_blocks);
 
     for (int i = 0; i < num_of_blocks; i++) {
-        ////printf("\nprinting blocks: i = %d\n", i);
         fwrite_hash(fout, fin);
     }
 return 0;
@@ -235,13 +210,7 @@ int read_num_records(FILE *fin) {
 }
 
 char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
-    ////printf("pathname_lenght %u\n", pathname_length);
     u_int16_t pathname_length = fread_little_endian_16(file1);
-/*     if (fread(&pathname_length, 2, 1, file1) == 0) {
-        perror("reached EOF at pathlength");
-        exit(1);
-    }; */
-
 
     fwrite_little_endian_16(file2, pathname_length);
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
@@ -260,13 +229,6 @@ char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
 
 char *read_pathname(FILE *fin) {
     u_int16_t pathname_length = fread_little_endian_16(fin);
-/*     if (fread(&pathname_length, 2, 1, fin) == 0) {
-        perror("reached EOF at pathlength");
-        exit(1);
-    }; */
-
-
-    //printf("pathname_length = %u\n", pathname_length);
 
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
@@ -283,10 +245,6 @@ char *read_pathname(FILE *fin) {
 
 int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
     uint32_t num_blocks = fread_little_endian_24(ftabi);
-/*     if (fread(&num_blocks, 3, 1, ftabi) == 0) {
-        perror("EOF reached while reading num_blocks");
-        exit(1);
-    } */
     fwrite_little_endian_24(ftbbi, num_blocks);
     return (int)num_blocks;
 }
@@ -294,58 +252,8 @@ int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
 int get_number_blocks_ftbbi(FILE *ftbbi) {
     uint32_t num_blocks = fread_little_endian_24(ftbbi);
 
-/*     if (fread(&num_blocks, 3, 1, ftbbi) == 0) {
-        perror("EOF reached while reading num_blocks");
-        exit(1);
-    } */
-    //printf("number of blocks read as %u\n", num_blocks);
     return (int)num_blocks;
 }
-
-/* void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
-    FILE *in_file = fopen(pathname, "r");
-    int matches_length = num_tbbi_match_bytes(num_blocks);
-
-
-    while (matches_length > 0) {
-        int l = matches_length;
-        if (matches_length > 8) {
-            l = 8;
-        }
-        matches_length -= 8;
-        uint64_t matches = 0;
-        for (int i = 0; i < (l * 8); i++) {
-            matches = matches << 1;
-            if (i < num_blocks) {
-                if (in_file == NULL) {
-                    printf("in_file = NULL printed 0\n");
-                    fputc(0, ftbbi);
-                } else {
-                    uint64_t hash_read = fread_hash(ftabi);
-                    printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
-
-                    uint64_t hash_generated = generate_hash(in_file);
-                    printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
-                    if (hash_read == hash_generated) {
-                        printf("hashes matched printed 1\n");
-                        matches++;
-                    } else {
-                        printf("hashes didn't match printed 0\n");
-                    }
-                //}
-                }
-            } else {
-                printf("i=%d >= num_block=%d printed 0\n", i, num_blocks);
-            }
-
-        }
-        fwrite_big_endian_64(ftbbi, matches, matches_length);
-    }
-
-    if (in_file != NULL) {
-        fclose(in_file);    
-    }
-} */
 
 void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
     FILE *in_file = fopen(pathname, "r");
@@ -358,15 +266,11 @@ void write_matches(int num_blocks, char *pathname, FILE *ftabi, FILE *ftbbi) {
             if (((i * 8) + j) < num_blocks) {
                     uint64_t hash_read = fread_hash(ftabi);
                 if (in_file != NULL) {
-                    //printf("hash_read at i = %d:     0x%lx\n", i, hash_read);
 
                     uint64_t hash_generated = generate_hash(in_file);
-                    //printf("generate_hash at i = %d: 0x%lx\n", i, hash_generated);
                     if (hash_read == hash_generated) {
-                        //printf("hashes matched printed 1\n");
                         matches++;
                     } else {
-                        //printf("hashes didn't match printed 0\n");
                     }
                 }
             }
@@ -392,35 +296,11 @@ void print_mode_to_file(FILE *ftcbi, char *pathname) {
 		perror(pathname);
 		exit(1);
 	}
-    //char *mode = ;
-/*     for (int i = 0; i < 10; i++) {
-        fputc(mode[i], ftcbi);
-    } */
     if (S_ISREG(s.st_mode)) {
-        ////printf("filetype is regular\n");
         fputc('-', ftcbi);
     } else {
         fputc('0', ftcbi);
     }
-    /* 
-      if ((mode & S_IFMT) == S_IFREG) {
-        //printf("Regular file\n");
-    } else if ((mode & S_IFMT) == S_IFDIR) {
-        //printf("Directory\n");
-    } else if ((mode & S_IFMT) == S_IFLNK) {
-        //printf("Symbolic link\n");
-    } else if ((mode & S_IFMT) == S_IFIFO) {
-        //printf("FIFO or pipe\n");
-    } else if ((mode & S_IFMT) == S_IFSOCK) {
-        //printf("Socket\n");
-    } else if ((mode & S_IFMT) == S_IFCHR) {
-        //printf("Character device\n");
-    } else if ((mode & S_IFMT) == S_IFBLK) {
-        //printf("Block device\n");
-    } else {
-        //printf("Unknown file type\n");
-    }
-     */
     strmode(ftcbi, s.st_mode);
 }
 
@@ -431,7 +311,6 @@ int print_filesize_to_file(FILE *ftcbi, char *pathname) {
 		exit(1);
 	}
     uint32_t filesize = s.st_size;
-    //fwrite(&filesize, 4, 1, ftcbi);
     fwrite_little_endian_32(ftcbi, filesize);
     return (int)filesize;
 }
@@ -476,37 +355,6 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
     }
     return num_updates;
 }
-/*     for (int i = 0; i < matches_length; i++) {
-        matches |= ((uint64_t)b) << (8 * i);
-    }
-    for (int i = 0; i < num_blocks; i++) {
-        bool match = ((matches >> ((matches_length * 8 - 1) - i)) & 1);
-        if (match) {
-            updates[i] = false;
-        } else {
-            updates[i] = true;
-            num_updates++;
-        } 
-    } */
-
-/*     for (int i = 0; i < (matches_length * 8); i++) {
-        //printf("reading %dth bit from matches = %d\n", i, match);
-        if (match == EOF) {
-            perror("EOF reached while reading match");
-            exit(1);
-        }
-        if (i < num_blocks) {
-            if (match == '1') {
-                updates[i] = false;
-            } else if (match == '0') {
-                updates[i] = true;
-                num_updates++;
-            } else {
-                perror("Expected 1/0");
-                exit(1);
-            }
-        }
-    } */
 
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
@@ -538,8 +386,6 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
     }
 }
 
-
-/* 
 size_t get_num_sub_entries(DIR *dir) {
     size_t num_sub_entries = 0;
     struct dirent *entry;
@@ -646,23 +492,18 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
             continue;
         }
         sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
-        //printf("checking path %s\n", extended_path);
         if (stat(extended_path, &fileStat) == -1) {
             perror("stat");
             exit(1);
         }
         num_sub_entries++;
 
-        // Formatting integers and characters
 
         // write record for current entry
-
         if (S_ISDIR(fileStat.st_mode)) {
             fwrite_record_directory(fout, extended_path);   
             DIR *sub_dir = opendir(extended_path);
             strcat(extended_path, "/");
-            //printf("recursing to %s\n", extended_path);
-            // recursively write records of sub_entries of directory
             num_sub_entries += write_sub_entries(fout, sub_dir, extended_path);
 
             if (closedir(sub_dir) == -1) {
@@ -745,7 +586,6 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
                 perror("path not in directory");
                 exit(1);
             }
-
         }
 
         // write records of input filenames
@@ -774,11 +614,11 @@ void stage_2(char *out_filename, char *in_filename) {
     verify_magic(ftabi, magic_number_tabi);
     write_magic(ftbbi, magic_number_tbbi);
 
-    int num_of_records = copy_number_of_records_from_file1_to_file2(ftabi, ftbbi); // exit if reached EOF
+    int num_of_records = copy_number_of_records_from_file1_to_file2(ftabi, ftbbi);
     for (int i = 0; i < num_of_records; i++) {
 
-        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftabi, ftbbi); // exit if EOF found
-        int num_blocks = copy_num_blocks_from_file1_to_file2(ftabi, ftbbi); // exit if EOF found
+        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftabi, ftbbi);
+        int num_blocks = copy_num_blocks_from_file1_to_file2(ftabi, ftbbi);
         write_matches(num_blocks, pathname, ftabi, ftbbi);
         free(pathname);
     }
@@ -812,37 +652,28 @@ void stage_3(char *out_filename, char *in_filename) {
     verify_magic(ftbbi, magic_number_tbbi);
     write_magic(ftcbi, magic_number_tcbi);
 
-    int num_of_records = copy_number_of_records_from_file1_to_file2(ftbbi, ftcbi); // exit if reached EOF
+    int num_of_records = copy_number_of_records_from_file1_to_file2(ftbbi, ftcbi);
     
     for (int i = 0; i < num_of_records; i++) {
 
-        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi); // exit if EOF found
-        int num_blocks = get_number_blocks_ftbbi(ftbbi); // exit if EOF found
+        char *pathname = copy_pathname_and_length_from_file1_to_file2(ftbbi, ftcbi);
+        int num_blocks = get_number_blocks_ftbbi(ftbbi);
         print_mode_to_file(ftcbi, pathname);
         int filesize = print_filesize_to_file(ftcbi, pathname);
-            // fread for length (matches_length). read the first num_blocks of bits and assign to updates array if 0. return number of non-padding zero bits in the array.
+            // fread for length (matches_length). read the first num_blocks of
+            // bits and assign to updates array if 0. return number of non-padding zero bits in the array.
             int updates[num_blocks + 1];
             updates[num_blocks] = -1;
             int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
-            ////printf("number of updates for i = %d: %d\n", i, num_updates);
             print_number_of_updates_to_file(ftcbi, num_updates);
         if (num_blocks != 0) {
             write_updates_to_file(ftcbi, pathname, updates, num_blocks);
         }
 
-        //printf("num_blocks_indicated(%d) > num_blocks_read(%zu)\n", num_blocks, number_of_blocks_in_file(filesize));
         if (num_blocks > number_of_blocks_in_file(filesize)) {
             perror("num blocks too high for filesize");
             exit(1);
         }
-/*      
-   if (((num_blocks - 1) * BLOCK_SIZE) > filesize) {
-        } */
-        
-/*         if ((((num_blocks - 1) * BLOCK_SIZE) > filesize) || (((num_blocks+1) * BLOCK_SIZE) < filesize) ){
-            perror("num blocks too high for filesize");
-            exit(1);
-        } */
         free(pathname);
     }
 
@@ -854,26 +685,6 @@ void stage_3(char *out_filename, char *in_filename) {
     fclose(ftcbi);
 
 }
-
-/* mode_t read_mode_from_stat(char *filename) {
-
-    struct stat fileStat;
-    if (stat(filename, &fileStat) != 0) {
-        perror("file stat could not be opened");
-        exit(1);
-    }
-
-    mode_t mode = fileStat.st_mode;
-
-    if (S_ISREG(mode)) {
-        printf("Regular file\n");
-    } else if (S_ISDIR(mode)) {
-        printf("Directory\n");
-    } else {
-        perror("file not regular file or directory");
-        exit(1);
-    }
-} */
 
 mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
     mode_t new_mode = 0;
@@ -1009,8 +820,6 @@ void update_mode(char *filename, mode_t new_mode) {
 
 int read_filesize(FILE *ftcbi) {
     uint32_t filesize = fread_little_endian_32(ftcbi);
-
-    //printf("    uint32_t filesize = %d\n", filesize);
     return (int)filesize;
 }
 
@@ -1019,9 +828,7 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
         perror("Error while seeking file");
         exit(1);
     }
-    //printf("writing block...\n");
     for (int i=0; i < block_size; i++) {
-        //putchar(block[i]);    
         fputc(block[i], target);    
     }
     if (block_size != BLOCK_SIZE) {
@@ -1037,18 +844,10 @@ void update_block(FILE *target, int block_index, char block[], int block_size) {
             exit(1);
         } 
     }
-    //fwrite(block, block_size, 1, target);
-    //printf("\n");
-
 }
 
 int read_num_updates(FILE *ftcbi) {
     uint32_t num_updates = fread_little_endian_24(ftcbi);
-/*     if (fread(&num_updates, 3, 1, ftcbi) < 1) {
-        perror("Found EOF while reading num_updates");
-        exit(1);
-    };
- */
     return (int)num_updates;
 }
 
@@ -1059,37 +858,19 @@ int read_block_index(FILE *ftcbi) {
 
 int read_block_size(FILE *ftcbi) {
     u_int16_t block_size = fread_little_endian_16(ftcbi);
-/*     if (fread(&block_size, 2, 1, ftcbi) < 1) {
-        perror("Found EOF while reading block size");
-        exit(1);
-    }; */
     return (int)block_size;
 }
 
 void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
     for (int i = 0; i < num_updates; i++) {
-        //printf("        reading update %d\n", i);
         int block_index = read_block_index(ftcbi);
-        //printf("        block index read as %d\n", block_index);
         int block_size = read_block_size(ftcbi);
-        //printf("        block size read as %d\n", block_size);
 
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
         fread_next_block(ftcbi, block, block_size);
         update_block(target, block_index, block, block_size);
     }
- /*   long currentPosition = ftell(target);
-     if (currentPosition == -1) {
-        perror("Error getting current file position");
-        exit(1);
-    }
-
-    // Step 4: Truncate the file from the current position to delete the content
-    if (ftruncate(fileno(target), currentPosition) != 0) {
-        perror("Error truncating the file");
-        exit(1);
-    } */
 }
 
 /// @brief Apply a TCBI file to the filesystem.
@@ -1104,13 +885,12 @@ void stage_4(char *in_filename) {
     }
     verify_magic(ftcbi, magic_number_tcbi);
     int num_records = read_num_records(ftcbi);
-    //printf("num records = %d\n", num_records);
 
     for (int i = 0; i < num_records; i++) {
         char *pathname = read_pathname(ftcbi);
         FILE *target;
         if (access(pathname, F_OK) == 0) {
-            mode_t modify_permissions = 0644; // Owner: read+write, Group and Others: read-only
+            mode_t modify_permissions = 0644;
             if (chmod(pathname, modify_permissions) != 0) {
                 perror("Error changing file permissions");
                 exit(1);
@@ -1127,24 +907,12 @@ void stage_4(char *in_filename) {
                 exit(1);
             }
         }
-        //printf("record = %s\n", pathname);
-
-        ////printf("target = %p\n", target);
-        ////printf("Came here successfully\n");
         mode_t new_mode = read_mode_from_tcbi_file(ftcbi);
         update_mode(pathname, new_mode);
         long filesize = read_filesize(ftcbi);
-        //printf("    filesize = %d\n", filesize);
         int num_updates = read_num_updates(ftcbi);
-        //printf("    number of updates = %d\n", num_updates);
         read_and_execute_updates(ftcbi, target, num_updates);
         free(pathname);
-
-/*         long currentPosition = ftell(target);
-        if (currentPosition == -1) {
-            perror("Error getting current file position");
-            exit(1);
-        } */
 
         // Step 4: Truncate the file from the current position to delete the content
         if (ftruncate(fileno(target), filesize) != 0) {
@@ -1152,10 +920,7 @@ void stage_4(char *in_filename) {
             exit(1);
         }
 
-
         fclose(target);
-/*      
-        */
     }
     if (fgetc(ftcbi) != EOF) {
         perror("EOF not reached after reading given number of records");
