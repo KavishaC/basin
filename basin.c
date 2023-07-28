@@ -623,14 +623,14 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
-        if (stat(entry->d_name, &fileStat) == -1) {
+        sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
+        if (stat(extended_path, &fileStat) == -1) {
             perror("stat");
             exit(1);
         }
         num_sub_entries++;
 
         // Formatting integers and characters
-        sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
         printf("writing record of %s\n", extended_path);
 
         // write record for current entry
