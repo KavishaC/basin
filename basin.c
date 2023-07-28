@@ -638,7 +638,7 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
 
         if (S_ISDIR(fileStat.st_mode)) {
             DIR *sub_dir = opendir(entry->d_name);
-            sprintf(extended_path, "%s./", path_from_working_directory);
+            sprintf(extended_path, "%s./", extended_path);
             printf("recursing to %s\n", extended_path);
             // recursively write records of sub_entries of directory
             num_sub_entries += write_sub_entries(fout, sub_dir, extended_path);
