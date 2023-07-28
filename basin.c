@@ -171,7 +171,7 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     for (int i = 0; i < num_of_blocks; i++) {
         fwrite_hash(fout, fin);
     }
-return 0;
+    return 0;
 }
 
 void write_magic(FILE *fout, char magic[]) {
@@ -358,7 +358,6 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
 
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
-    //fwrite(&number, 3, 1, file);
     fwrite_little_endian_24(file, number);
 }
 
@@ -372,14 +371,10 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
         char block[BLOCK_SIZE];
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(readfile, block);
-        //printf("\ni = %d: block size = %d\n", i, block_size);
         if (updates[i] == true) {
-            //fwrite(&i, 3, 1, file);
             fwrite_little_endian_24(file, i);
-            //fwrite(&block_size, 2, 1, file);
             fwrite_little_endian_16(file, block_size);
             for (int j = 0; j < block_size; j++) {
-                //printf("writing %dth char %c\n", j, block[j]);
                 fputc(block[j], file);
             }
         }
@@ -443,13 +438,10 @@ void get_filenames_of_entries(DIR *dir, char *sub_entries_filenames[], size_t nu
             }
         }
     }
-
     if (num_sub_entries != num_sub_entries_expected) {
         perror("did not read sub_entries ");
     }
 }
-
- 
 
 void write_record(FILE *fout, char *in_filename) {
     FILE *fin = fopen(in_filename, "r");
@@ -485,7 +477,6 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
             exit(1);
         }
         num_sub_entries++;
-
 
         // write record for current entry
         if (S_ISDIR(fileStat.st_mode)) {
@@ -649,7 +640,7 @@ void stage_3(char *out_filename, char *in_filename) {
         print_mode_to_file(ftcbi, pathname);
         int filesize = print_filesize_to_file(ftcbi, pathname);
             // fread for length (matches_length). read the first num_blocks of
-            // bits and assign to updates array if 0. return number of non-padding zero bits in the array.
+            // bits and assign to updates array if 0.
             int updates[num_blocks + 1];
             updates[num_blocks] = -1;
             int num_updates = read_matches_and_get_updates(ftbbi, updates, num_blocks);
