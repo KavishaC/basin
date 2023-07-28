@@ -677,9 +677,10 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
             perror("unable to open working dir");
             exit(1);
         }
-        char *path = malloc(4000000);
-        *path = '\n';
-        strcat(path, "hey");
+        char *path = (char *)malloc(4000000);
+        //*path = '\n';
+        //strcat(path, "hey");
+        strcpy(path, "");
         num_in_filenames = write_sub_entries(fout, working_dir, path);
         free(path);
         // move file pointer of fout to position 4 to overwrite the filesize 
