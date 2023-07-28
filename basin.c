@@ -516,11 +516,11 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
     }
 }
 
-size_t write_sub_entries(FILE *fout, DIR *dir, char *path_from_working_directory) {
+size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[]) {
     size_t num_sub_entries = 0;
     struct dirent *entry;
     struct stat fileStat;
-    char *extended_path;
+    char extended_path[1024];
 
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
@@ -531,7 +531,9 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char *path_from_working_directory
             exit(1);
         }
         num_sub_entries++;
-        *extended_path = *path_from_working_directory + entry->d_name;
+
+        // Formatting integers and characters
+        sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
         printf("writing record of %s", extended_path);
 
         // write record for current entry
@@ -539,7 +541,7 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char *path_from_working_directory
 
         if (S_ISDIR(fileStat.st_mode)) {
             DIR *sub_dir = opendir(entry->d_name);
-            *extended_path == *extended_path + "./";
+            sprintf(extended_path, "%s./", path_from_working_directory);
             printf("recursing to %s", extended_path);
             // recursively write records of sub_entries of directory
             num_sub_entries += write_sub_entries(fout, sub_dir, extended_path);
@@ -673,6 +675,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
             perror("unable to open working dir");
             exit(1);
         }
+
         num_in_filenames = write_sub_entries(fout, working_dir, "./");
         // move file pointer of fout to position 4 to overwrite the filesize 
         fputc((u_int8_t)num_in_filenames, fout);
