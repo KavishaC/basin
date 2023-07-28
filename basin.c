@@ -516,44 +516,7 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
     }
 }
 
-size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[]) {
-    size_t num_sub_entries = 0;
-    struct dirent *entry;
-    struct stat fileStat;
-    char extended_path[1024];
 
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-        if (stat(entry->d_name, &fileStat) == -1) {
-            perror("stat");
-            exit(1);
-        }
-        num_sub_entries++;
-
-        // Formatting integers and characters
-        sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
-        printf("writing record of %s", extended_path);
-
-        // write record for current entry
-        write_record(fout, extended_path);
-
-        if (S_ISDIR(fileStat.st_mode)) {
-            DIR *sub_dir = opendir(entry->d_name);
-            sprintf(extended_path, "%s./", path_from_working_directory);
-            printf("recursing to %s", extended_path);
-            // recursively write records of sub_entries of directory
-            num_sub_entries += write_sub_entries(fout, sub_dir, extended_path);
-
-            if (closedir(sub_dir) == -1) {
-                perror("unable to close sub_dir");
-                exit(1);
-            }
-        }
-    }
-    return num_sub_entries;
-}
 /* 
 size_t get_num_sub_entries(DIR *dir) {
     size_t num_sub_entries = 0;
@@ -648,6 +611,45 @@ void write_records(FILE *fout, char *in_filenames[], size_t num_in_filenames) {
         char *in_filename = in_filenames[i];
         write_record(fout, in_filename);
     }
+}
+
+size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[]) {
+    size_t num_sub_entries = 0;
+    struct dirent *entry;
+    struct stat fileStat;
+    char extended_path[1024];
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        if (stat(entry->d_name, &fileStat) == -1) {
+            perror("stat");
+            exit(1);
+        }
+        num_sub_entries++;
+
+        // Formatting integers and characters
+        sprintf(extended_path, "%s%s", path_from_working_directory, entry->d_name);
+        printf("writing record of %s", extended_path);
+
+        // write record for current entry
+        write_record(fout, extended_path);
+
+        if (S_ISDIR(fileStat.st_mode)) {
+            DIR *sub_dir = opendir(entry->d_name);
+            sprintf(extended_path, "%s./", path_from_working_directory);
+            printf("recursing to %s", extended_path);
+            // recursively write records of sub_entries of directory
+            num_sub_entries += write_sub_entries(fout, sub_dir, extended_path);
+
+            if (closedir(sub_dir) == -1) {
+                perror("unable to close sub_dir");
+                exit(1);
+            }
+        }
+    }
+    return num_sub_entries;
 }
 
 /// @brief Create a TABI file from an array of filenames.
