@@ -688,12 +688,12 @@ int isPathInDirectory(const char* directory, const char* pathname) {
 
     if (realpath(directory, absoluteDirectory) == NULL) {
         perror("realpath");
-        return 0;
+        exit(1);
     }
 
     if (realpath(pathname, absolutePathname) == NULL) {
         perror("realpath");
-        return 0;
+        exit(1);
     }
 
     size_t directoryLen = strlen(absoluteDirectory);
