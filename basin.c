@@ -38,20 +38,6 @@ void fwrite_little_endian(FILE *fout, u_int64_t number, int num_bytes) {
 }
 
 /* 
- * Convenience function to write a 16-bit number in little-endian byte order to a file.
- */
-void fwrite_little_endian_16(FILE *fout, u_int16_t number) {
-    fwrite_little_endian(fout, number, 2);
-}
-
-/* 
- * Convenience function to write a 24-bit number in little-endian byte order to a file.
- */
-void fwrite_little_endian_24(FILE *fout, u_int32_t number) {
-    fwrite_little_endian(fout, number, 3);
-}
-
-/* 
  * Convenience function to write a 32-bit number in little-endian byte order to a file.
  */
 void fwrite_little_endian_32(FILE *fout, u_int32_t number) {
@@ -195,13 +181,13 @@ int fwrite_record_directory(FILE *fout, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    fwrite_little_endian_16(fout, pathname_length);
+    fwrite_little_endian(fout, pathname_length, 2);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
     }
 
     uint32_t num_of_blocks = 0;
-    fwrite_little_endian_24(fout, num_of_blocks);
+    fwrite_little_endian(fout, num_of_blocks, 3);
 
     return 0;
 }
@@ -217,13 +203,13 @@ int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     }
 
     u_int16_t pathname_length = strlen(in_filename);
-    fwrite_little_endian_16(fout, pathname_length);
+    fwrite_little_endian(fout, pathname_length, 2);
     for (int i = 0; i < pathname_length; i++) {
         fputc(in_filename[i], fout);
     }
 
     uint32_t num_of_blocks = number_of_blocks_in_file(s.st_size);
-    fwrite_little_endian_24(fout, num_of_blocks);
+    fwrite_little_endian(fout, num_of_blocks, 3);
 
     for (int i = 0; i < num_of_blocks; i++) {
         fwrite_hash(fout, fin);
@@ -284,7 +270,7 @@ int read_num_records(FILE *fin) {
 char *copy_pathname_and_length_from_file1_to_file2(FILE *file1, FILE *file2) {
     u_int16_t pathname_length = fread_little_endian_16(file1);
 
-    fwrite_little_endian_16(file2, pathname_length);
+    fwrite_little_endian(file2, pathname_length, 2);
     char *pathname = malloc(sizeof(char)*(pathname_length + 1));
     pathname[pathname_length] = '\0';
     for (int i = 0; i < pathname_length; i++) {
@@ -323,7 +309,7 @@ char *read_pathname(FILE *fin) {
  */
 int copy_num_blocks_from_file1_to_file2(FILE *ftabi, FILE *ftbbi) {
     uint32_t num_blocks = fread_little_endian_24(ftabi);
-    fwrite_little_endian_24(ftbbi, num_blocks);
+    fwrite_little_endian(ftbbi, num_blocks, 3);
     return (int)num_blocks;
 }
 
@@ -460,7 +446,7 @@ int read_matches_and_get_updates(FILE *file, int updates[], int num_blocks) {
 */
 void print_number_of_updates_to_file(FILE *file, int num_updates) {
     u_int32_t number = num_updates;
-    fwrite_little_endian_24(file, number);
+    fwrite_little_endian(file, number, 3);
 }
 
 /*
@@ -477,8 +463,8 @@ void write_updates_to_file(FILE *file, char* pathname, int updates[], int num_bl
         memset(block, '\0', sizeof(block));
         int block_size = fread_next_256byte_block(readfile, block);
         if (updates[i] == true) {
-            fwrite_little_endian_24(file, i);
-            fwrite_little_endian_16(file, block_size);
+            fwrite_little_endian(file, i, 3);
+            fwrite_little_endian(file, block_size, 2);
             for (int j = 0; j < block_size; j++) {
                 fputc(block[j], file);
             }

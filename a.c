@@ -348,3 +348,220 @@ void stage_2(char *out_filename, char *in_filename) {
 
     // ... implementation ...
 }
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <dirent.h>
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#define BLOCK_SIZE 256
+
+/*
+* Reads the mode from a TCBI file and returns the new mode.
+*/
+mode_t read_mode_from_tcbi_file(FILE *ftcbi) {
+    mode_t new_mode = 0;
+
+    // Read the file type from the TCBI file
+    int filetype;
+    if ((filetype = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading filetype from tcbi");
+        exit(1);
+    };
+    if (filetype == '-') {
+        new_mode |= S_IFREG;
+    } else if (filetype == 'd') {
+        new_mode |= S_IFDIR;
+    } else {
+        perror("filetype not -/d");
+        exit(1);
+    }
+
+    // Read the user permissions from the TCBI file
+    int userperm;
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'r') {
+        new_mode |= S_IRUSR;
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not r/-");
+        exit(1);
+    }
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'w') {
+        new_mode |= S_IWUSR;
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not w/-");
+        exit(1);
+    }
+    if ((userperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading userperm from tcbi");
+        exit(1);
+    };
+    if (userperm == 'x') {
+        new_mode |= S_IXUSR;
+    } else if (userperm == '-') {
+    } else {
+        perror("userperm not x/-");
+        exit(1);
+    }
+
+    // Read the group permissions from the TCBI file
+    int groupperm;
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'r') {
+        new_mode |= S_IRGRP;
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not r/-");
+        exit(1);
+    }
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'w') {
+        new_mode |= S_IWGRP;
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not w/-");
+        exit(1);
+    }
+    if ((groupperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading groupperm from tcbi");
+        exit(1);
+    };
+    if (groupperm == 'x') {
+        new_mode |= S_IXGRP;
+    } else if (groupperm == '-') {
+    } else {
+        perror("groupperm not x/-");
+        exit(1);
+    }
+
+    // Read the other permissions from the TCBI file
+    int otherperm;
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'r') {
+        new_mode |= S_IROTH;
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not r/-");
+        exit(1);
+    }
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'w') {
+        new_mode |= S_IWOTH;
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not w/-");
+        exit(1);
+    }
+    if ((otherperm = fgetc(ftcbi)) == EOF) {
+        perror("Found EOF while reading otherperm from tcbi");
+        exit(1);
+    };
+    if (otherperm == 'x') {
+        new_mode |= S_IXOTH;
+    } else if (otherperm == '-') {
+    } else {
+        perror("otherperm not x/-");
+        exit(1);
+    }
+
+    return new_mode;
+}
+
+/*
+* Updates the mode of a file with the specified new_mode.
+*/
+void update_mode(char *filename, mode_t new_mode) {
+    if (chmod(filename, new_mode) != 0) {
+        perror("Error changing file permissions");
+        exit(1);
+    }
+}
+
+/*
+* Reads the filesize from a TCBI file and returns it.
+*/
+int read_filesize(FILE *ftcbi) {
+    uint32_t filesize = fread_little_endian_32(ftcbi);
+    return (int)filesize;
+}
+
+/*
+* Updates a block in the target file at the given block_index.
+*/
+void update_block(FILE *target, int block_index, char block[], int block_size) {
+    // ... implementation ...
+}
+
+/*
+* Reads the number of updates from a TCBI file and returns it.
+*/
+int read_num_updates(FILE *ftcbi) {
+    uint32_t num_updates = fread_little_endian_24(ftcbi);
+    return (int)num_updates;
+}
+
+/*
+* Reads the block index from a TCBI file and returns it.
+*/
+int read_block_index(FILE *ftcbi) {
+    uint32_t index = fread_little_endian_24(ftcbi);
+    return (int)index;
+}
+
+/*
+* Reads the block size from a TCBI file and returns it.
+*/
+int read_block_size(FILE *ftcbi) {
+    u_int16_t block_size = fread_little_endian_16(ftcbi);
+    return (int)block_size;
+}
+
+/*
+* Reads and executes updates from a TCBI file to the target file.
+*/
+void read_and_execute_updates(FILE *ftcbi, FILE *target, int num_updates) {
+    // ... implementation ...
+}
+
+/*
+* Applies a TCBI file to the filesystem.
+*/
+void stage_4(char *in_filename) {
+    char magic_number_tcbi[] = {0x54, 0x43, 0x42, 0x49};
+
+    FILE *ftcbi = fopen(in_filename, "r");
+    if (ftcbi == NULL) {
+        perror(in_filename);
+        exit(1);
+    }
+    verify_magic(ftcbi, magic_number_tcbi);
+    int num_records = read_num_records(ftcbi);
+
+    for (int i = 0;
