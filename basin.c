@@ -678,7 +678,7 @@ void stage_1(char *out_filename, char *in_filenames[], size_t num_in_filenames) 
             exit(1);
         }
         char *path = malloc(10000000);
-        strcat(path, "./");
+        *path = "./";
         num_in_filenames = write_sub_entries(fout, working_dir, path);
         free(path);
         // move file pointer of fout to position 4 to overwrite the filesize 
