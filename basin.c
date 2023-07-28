@@ -153,6 +153,26 @@ uint64_t generate_hash(FILE *fin) {
     return hash;
 }
 
+int fwrite_record_directory(FILE *fout, char *in_filename) {
+    struct stat s;
+    if (stat(in_filename, &s) != 0) {
+        perror(in_filename);
+        return 1;
+    }
+
+    u_int16_t pathname_length = strlen(in_filename);
+    ////printf("pathname_lenght %u\n", pathname_length);
+    fwrite_little_endian_16(fout, pathname_length);
+    for (int i = 0; i < pathname_length; i++) {
+        fputc(in_filename[i], fout);
+    }
+
+    uint32_t num_of_blocks = 0;
+    fwrite_little_endian_24(fout, num_of_blocks);
+
+    return 0;
+}
+
 int fwrite_record(FILE *fout, FILE *fin, char *in_filename) {
     struct stat s;
     if (stat(in_filename, &s) != 0) {
@@ -634,9 +654,9 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
         // Formatting integers and characters
 
         // write record for current entry
-        write_record(fout, extended_path);
 
         if (S_ISDIR(fileStat.st_mode)) {
+            fwrite_record_directory(fout, extended_path);   
             DIR *sub_dir = opendir(extended_path);
             strcat(extended_path, "/");
             printf("recursing to %s\n", extended_path);
@@ -647,6 +667,13 @@ size_t write_sub_entries(FILE *fout, DIR *dir, char path_from_working_directory[
                 perror("unable to close sub_dir");
                 exit(1);
             }
+        } else {
+            FILE *fin = fopen(extended_path, "r");
+            if (fin == NULL) {
+                perror(extended_path);
+                exit(1);
+            }
+            fwrite_record(fout, fin, extended_path);   
         }
     }
     return num_sub_entries;
